@@ -33,6 +33,7 @@ Note: `Version.1`, Version.2
    an end to end _hosted solution_ that will take them from prototype to
    delivery.
 
+  - Task Management: ??? (Not Jira)
   - Development: `NodeJS`, `Scala`, `Akka`, `Java`, `Python`, `Ruby`
   - Source Control: `Git`
   - Build & Deployment: `Flywaydb`, `Chef`, `Fabric`
@@ -47,3 +48,27 @@ Note: `Version.1`, Version.2
   - Services & Modularity: resful APIs using above development frameworks
   - Messaging: `ZeroMQ`
   - UI: Javascript :-)
+
+
+
+## Ukko v.1.0.0
+
+|Service                      |On-Site             |Hosted             |
+|-----------------------------|:------------------:|:-----------------:|
+|Task Management              |??? (Not Jira)      |??? (Not Jira)
+|Development                  |`Java`, `Scala`, `Akka`, `Finagle`, `Python`|`Java`, `Scala`, `Akka`, `Finagle`, `Python`
+|Source Control               |`Git`               |`Git`
+|Build & Deployment           |`Flywaydb`, `Chef`  |`Flywaydb`, `Chef`
+|Testing                      |`Travis`            |`Travis`
+|User Testing                 |`Selenium`          |`Selenium`
+|Support                      |???                 |`Google Tasks`
+|Data Integration             |`Pentaho`           |`Pentaho`
+|Scalable DBs                 |`MongoDB`           |`MongoDB`
+|Delivery                     |`S3`, `Cloudfront`  |`S3`, `Couldfront`
+|Analytics                    |`Hadoop`, `Pentaho` |`Hadoop`, `Pentaho`, `Spark`
+|Services & Modularity        |resful APIs         |restful APIs
+|Messaging                    |`ZeroMQ`, `Finagle` |`ZeroMQ`, `Finagle`
+|UI                           |Javascript          |Javascript
+
+
+
