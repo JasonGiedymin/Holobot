@@ -68,7 +68,20 @@ Note: `Version.1`, Version.2
 |Analytics                    |`Hadoop`, `Pentaho` |`Hadoop`, `Pentaho`, `Spark`
 |Services & Modularity        |resful APIs         |restful APIs
 |Messaging                    |`ZeroMQ`, `Finagle` |`ZeroMQ`, `Finagle`
-|UI                           |Javascript          |Javascript
+|UI                           |`Javascript`        |`Javascript`
+|Provisioning                 |Only Load Balancing |`Docker`
+
+
+
+## Ukko v.2.0.0
+
+Includes v.1.x.x features plus the following:
+
+|Service                      |On-Site             |Hosted             |
+|-----------------------------|:------------------:|:-----------------:|
+|Dynamic Cloud Computing      |Only Load Balancing |(`OpenStack`, `EC2`, `libcloud`) using Docker + Chef|
+
+
 
 
 
