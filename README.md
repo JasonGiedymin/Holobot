@@ -61,7 +61,7 @@ Includes v.2.x.x features plus the following:
 
 
 
-## Ukko v.4.0.0 - Project [Rowan](http://en.wikipedia.org/wiki/File:Rowan_tree_20081002b.jpg)
+## Ukko v.4.0.0 - Project [Rowan](http://en.wikipedia.org/wiki/File:Rowan_tree_20081002b.jpg) (Rauni, Maaginen aka Magic)
 
 Massive Data Services
 Includes v.3.x.x features plus the following:
