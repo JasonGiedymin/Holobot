@@ -7,51 +7,19 @@ Ukko has two product tracks.
 
 Note: `Version.1`, Version.2
 
-1. B2B Deployments of a working standard solution of products and methodologies.
-   These solutions will be taught to clients on how to use.
-   Not only the server software, but the 'tao' of how to develop for
-   continuous lean delivery.
-
-  - Task Management: ??? (Not Jira)
-  - Development: `Java`, `Scala`, `Akka`, `Python`
-  - Source Control: `Git`
-  - Build & Deployment: `Flywaydb`, `Chef`
-  - Testing: `Travis`
-  - User Testing: `Selenium`
-  - Support: Integrates with `Google Tasks`
-  - Data Integration: `Pentaho`
-  - Scalable DBs: `MongoDB`
-  - Delivery: `S3`, `Cloudfront`
-  - Analytics: `Hadoop`
-  - Services & Modularity: resful APIs using above development frameworks
-  - Messaging: `ZeroMQ`
-  - UI: Javascript :-)
+1. On-Site B2B Deployments of a working standard solution of products and 
+methodologies. These solutions will be taught to clients on how to use. 
+Not only the server software, but the 'tao' of how to develop for
+continuous lean delivery.
 
 
 2. SASS Services for the following workflow:
-   For firms or persons not willing to install these services we will provide
-   an end to end _hosted solution_ that will take them from prototype to
-   delivery.
-
-  - Task Management: ??? (Not Jira)
-  - Development: `NodeJS`, `Scala`, `Akka`, `Java`, `Python`, `Ruby`
-  - Source Control: `Git`
-  - Build & Deployment: `Flywaydb`, `Chef`, `Fabric`
-  - Testing: `Travis`
-  - User Testing: `Selenium`, Phantom
-  - Support: Integrates with basecamp, Asana, `Google Tasks`
-  - Data Integration: `Pentaho`
-  - Scalable DBs: `MongoDB`, Cassandra
-  - Delivery: `S3`, `Cloudfront`
-  - Analytics: `Hadoop`
-  - Services: resful APIs using above development frameworks
-  - Services & Modularity: resful APIs using above development frameworks
-  - Messaging: `ZeroMQ`
-  - UI: Javascript :-)
+For firms or persons not willing to install these services we will provide
+an end to end _hosted solution_ that will take them from prototype to
+delivery.
 
 
-
-## Ukko v.1.0.0
+## Ukko v.1.0.0 - Project Thunder (Ukkonen)
 
 |Service                      |On-Site             |Hosted             |
 |-----------------------------|:------------------:|:-----------------:|
@@ -73,7 +41,7 @@ Note: `Version.1`, Version.2
 
 
 
-## Ukko v.2.0.0
+## Ukko v.2.0.0 - Project Hammer (Ukonvasara)
 
 Includes v.1.x.x features plus the following:
 
@@ -83,5 +51,22 @@ Includes v.1.x.x features plus the following:
 
 
 
+## Ukko v.3.0.0 - Project LadyBug (ukonlehmä)
 
+Includes v.2.x.x features plus the following:
+
+|Service                      |On-Site             |Hosted             |
+|-----------------------------|:------------------:|:-----------------:|
+|Dynamic Cloud Computing      |Only Load Balancing |(`OpenStack`, `EC2`, `libcloud`) using Docker + Chef|
+
+
+
+## Ukko v.4.0.0 - Massive Data Services - Project [Rowan](http://en.wikipedia.org/wiki/File:Rowan_tree_20081002b.jpg)
+
+|Service                      |On-Site             |Hosted             |
+|-----------------------------|:------------------:|:-----------------:|
+|Data Storge                  |N/A                 |`HDFS`, `Cassandra`, `MongoDB+GridFS`|
+|Mining                       |N/A                 |`Weka`|
+|High Speed Machine Learning  |N/A                 |`Spark/BlinkDB`, `Shark`|
+|Reporting                    |`Pentaho`           |`Pentaho`
 
