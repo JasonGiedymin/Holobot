@@ -1,10 +1,10 @@
 Ukko
 ====
 
-#TODO
+##TODO
 
 
-##R1 
+###R1 
 Vagrant image of Ubuntu 13.x with the following (we will call this image `MasterBot`)
   - sudo apt-get update
   - sudo apt-get upgrade
@@ -12,7 +12,7 @@ Vagrant image of Ubuntu 13.x with the following (we will call this image `Master
   - get chef solo installed (must be solo, or puppet apply, or fabric)
 
 
-##R2
+###R2
 Create `MasterBot-dev` image so it can 'create' `MasterBot` images. Dev image needs:
   - vagrant
   - vagrant-berkshelf
@@ -25,12 +25,12 @@ Create `MasterBot-dev` image so it can 'create' `MasterBot` images. Dev image ne
   - java (1.7)
 
 
-##R3
+###R3
 
 - `MasterBot-cpu`
 
 
-##R4
+###R4
 
 - `CoreBot-cpu`
 
