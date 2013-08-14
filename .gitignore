@@ -69,3 +69,6 @@ project/project
 ## Conf and Security
 conf/application.conf
 conf/auth.conf
+
+## Vagrant
+vagrant-boxes/base-boxes

@@ -1,7 +1,8 @@
 Vagrant.configure("2") do |config|
   config.vm.box = 'holobot-dev'
-  config.vm.box_url = '/Volumes/Storage for Jason/ISOs/saucy-server-cloudimg-amd64-vagrant-disk1.box'
+  #config.vm.box_url = '/Volumes/Storage for Jason/ISOs/saucy-server-cloudimg-amd64-vagrant-disk1.box'
   #config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/saucy/current/saucy-server-cloudimg-amd64-vagrant-disk1.box'
+  config.vm.box_url = '../base-boxes/saucy-server-cloudimg-amd64-vagrant-disk1.box'
 
   config.vm.provider :virtualbox do |vb|
     #vb.customize ["modifyvm", :id, "--hwvirtex", "off"] #in case it is needed
