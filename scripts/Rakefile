@@ -1,0 +1,9 @@
+# Holobot Rakefile 
+
+# Base namespace
+namespace :base do
+  desc "Update remote cookbooks"
+  task :update do
+    puts "Updating remote cookbooks"
+  end
+end

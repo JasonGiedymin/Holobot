@@ -2,6 +2,7 @@ HoloBot
 ====
 
 ## TODO
+- finish Rakefile in `scripts` dir
 - enable shared directory 
 - install:
   - scala (latest release)
