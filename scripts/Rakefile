@@ -1,10 +1,7 @@
 # Holobot Rakefile
 #
-# Usage:
-#  rake clean
-#  rake base:update
-#  rake base:manual
-#  rake base:manualUpdate["java","https://github.com/opscode-cookbooks/java.git"] 
+# `rake` for usage
+#
 
 require 'rake/clean'
 
