@@ -1,9 +1,70 @@
-# Holobot Rakefile 
+# Holobot Rakefile
+#
+# Usage:
+#  rake clean
+#  rake base:update
+#  rake base:manual
+#  rake base:manualUpdate["java","https://github.com/opscode-cookbooks/java.git"] 
+
+require 'rake/clean'
+
+COOKBOOKS_DIR = "cookbooks"
+CLEAN = FileList["#{COOKBOOKS_DIR}/*"].exclude("#{COOKBOOKS_DIR}/README.md")
+
+task :default do
+  Rake::Task["help:examples"].invoke
+end
 
 # Base namespace
-namespace :base do
-  desc "Update remote cookbooks"
-  task :update do
+namespace :cookbooks do
+  def clone(name, url)
+    puts "Cloning cookbook [ #{name} via #{url} ]"
+    if system "git clone #{url} #{COOKBOOKS_DIR}/#{name}"
+      puts "-> Repository #{url} cloned.\n\n"
+    else
+      raise "\n!!!\n   Error cloning url: #{url}\n!!!\n\n"
+    end
+  end
+
+  desc "Manual Update of a remote cookbook"
+  task :manual, :name, :url do |t, args|
     puts "Updating remote cookbooks"
+    name = args[:name]
+    url = args[:url]
+    clone(name, url)    
+  end
+
+  desc "Auto Update of all known remote cookbooks"
+  task :auto do
+    cookbooks = {
+      :java => "https://github.com/opscode-cookbooks/java.git",
+      :python => "https://github.com/opscode-cookbooks/python.git",
+      :typesafe => "https://github.com/gildegoma/chef-typesafe-stack.git",
+      :golang => "https://github.com/NOX73/chef-golang.git",
+      :nodejs => "https://github.com/mdxp/nodejs-cookbook.git"
+    }
+    puts "Running auto update..."
+
+    cookbooks.each{ |name, url| clone(name, url)}
+    
   end
 end
+
+namespace :help do
+  desc "usage examples"
+  task :examples do
+    puts "\n\n"
+    puts " Note: You may see `CLEAN` warnings from running `rake`, you may safely ignore these."
+    puts "---------------------------"
+    puts " Usage Examples:"
+    puts "  `rake -T` lists all the available tasks"
+    puts "  `rake clean` cleans up cookbooks and misc files"
+    puts "  `rake cookbooks:auto` will autoupdate cookbooks by cloning into cookbooks/"
+    puts "  `rake cookbooks:manual['java','https://github.com/opscode-cookbooks/java.git']` to manually clone a cookbook"
+    puts "---------------------------"
+    puts "\n\n"
+  end
+
+  task :default => :examples
+end
+
