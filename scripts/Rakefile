@@ -38,7 +38,8 @@ namespace :cookbooks do
       :python => "https://github.com/opscode-cookbooks/python.git",
       :typesafe => "https://github.com/gildegoma/chef-typesafe-stack.git",
       :golang => "https://github.com/NOX73/chef-golang.git",
-      :nodejs => "https://github.com/mdxp/nodejs-cookbook.git"
+      :nodejs => "https://github.com/mdxp/nodejs-cookbook.git",
+      :nvm => "https://github.com/hipsnip-cookbooks/nvm.git"
     }
     puts "Running auto update..."
 
