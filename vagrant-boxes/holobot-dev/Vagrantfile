@@ -11,7 +11,6 @@ SCRIPT
 Vagrant.configure("2") do |config|
   # Base setup
   config.vm.box = 'holobot-dev'
-  #config.vm.box_url = '/Volumes/Storage for Jason/ISOs/saucy-server-cloudimg-amd64-vagrant-disk1.box'
   #config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/saucy/current/saucy-server-cloudimg-amd64-vagrant-disk1.box'
   config.vm.box_url = '../base-boxes/saucy-server-cloudimg-amd64-vagrant-disk1.box'
 
@@ -35,11 +34,15 @@ Vagrant.configure("2") do |config|
   config.vm.provision :shell, inline: upgrade
   config.vm.provision :shell, inline: installs
 
+  # berkshelf - if we want to utilize
+  #config.berkshelf.enabled = true
+
   # chef
-  #config.vm.provision "chef_solo" do |chef|
-  # chef.cookbooks_path = "../../scripts/cookbooks"
-  # chef.data_bags_path = "../../scripts/data_bags"
-  #end
+  config.vm.provision "chef_solo" do |chef|
+   #chef.cookbooks_path = "../../scripts/cookbooks"
+   #chef.data_bags_path = "../../scripts/data_bags"
+   #chef.log_level = :debug
+  end
 
 end
 
