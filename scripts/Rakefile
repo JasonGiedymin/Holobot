@@ -6,7 +6,26 @@
 require 'rake/clean'
 
 COOKBOOKS_DIR = "cookbooks"
-CLEAN = FileList["#{COOKBOOKS_DIR}/*"].exclude("#{COOKBOOKS_DIR}/README.md")
+CLEAN = FileList[
+  "#{COOKBOOKS_DIR}/*",
+  "./Berksfile",
+  "./Berksfile.lock",
+  "./Thorfile",
+  "./.gitignore",
+  "./.git",
+  "./Gemfile",
+  "./Gemfile.lock",
+  "./Vagrantfile"
+].exclude("#{COOKBOOKS_DIR}/README.md")
+
+BASE_GEM_INSTALL_LIST = [
+  #"vagrant", # gem bundle version is out of date, do manual install :-()
+  "berkshelf"
+]
+
+BASE_VAGRANT_PLUGINS = [
+  "vagrant-berkshelf"
+]
 
 task :default do
   Rake::Task["help:examples"].invoke
@@ -20,6 +39,15 @@ namespace :cookbooks do
       puts "-> Repository #{url} cloned.\n\n"
     else
       raise "\n!!!\n   Error cloning url: #{url}\n!!!\n\n"
+    end
+  end
+
+  def berksInstall(name)
+    puts "Adding to berkshelf [ #{name} ]"
+    if system "berks install #{COOKBOOKS_DIR}/#{name}"
+      puts "-> cookbook #{name} added to berkshelf.\n\n"
+    else
+      raise "\n!!!\n   Error adding to berkshelf: #{name}\n!!!\n\n"
     end
   end
 
@@ -43,10 +71,48 @@ namespace :cookbooks do
     }
     puts "Running auto update..."
 
-    cookbooks.each{ |name, url| clone(name, url)}
-    
+    cookbooks.each_pair do |name, url|
+      clone(name, url)
+      #berksInstall(name) #disabled for now
+    end
+
   end
 end
+
+
+# Install namespace for setting up base environment
+namespace :install do
+  def installGem(gemName)
+    puts "gem install [ #{gemName} ]"
+    if system "gem install #{gemName}"
+      puts "-> Installed #{gemName}...\n\n"
+    else
+      raise "\n!!!\n   Error trying to gem install #{gemName}\n!!!\n\n"
+    end
+  end
+
+  def installVagrantPlugin(pluginName)
+    puts "vagrant plugin install [ #{pluginName} ]"
+    if system "vagrant plugin install #{pluginName}"
+      puts "-> Installed vagrant plugin #{pluginName}...\n\n"
+    else
+      raise "\n!!!\n   Error trying to vagrant plugin install #{pluginName}\n!!!\n\n"
+    end
+  end
+
+  desc "Install dependencies for Holobot"
+  task :deps do
+    puts "Installing dependencies for Holobot"
+    BASE_GEM_INSTALL_LIST.each{ |gemName| installGem(gemName) }
+
+    puts "Installing vagrant plugins"
+    BASE_VAGRANT_PLUGINS.each{ |plugin| installVagrantPlugin(plugin) }
+
+    puts "\n\n Complete."
+  end
+
+end
+
 
 namespace :help do
   desc "usage examples"
