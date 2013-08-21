@@ -5,11 +5,15 @@
 
 require 'rake/clean'
 
-COOKBOOKS_DIR = "cookbooks"
+HOME = File.dirname(__FILE__)
+COOKBOOKS_DIR = "#{HOME}/cookbooks"
+BERKSHELF_DIR = "#{HOME}/berkshelf"
+
 CLEAN = FileList[
   "#{COOKBOOKS_DIR}/*",
   "./Berksfile",
   "./Berksfile.lock",
+  "./berkshelf",
   "./Thorfile",
   "./.gitignore",
   "./.git",
@@ -44,7 +48,7 @@ namespace :cookbooks do
 
   def berksInstall(name)
     puts "Adding to berkshelf [ #{name} ]"
-    if system "berks install #{COOKBOOKS_DIR}/#{name}"
+    if system "cd #{COOKBOOKS_DIR}/#{name} && berks install --path #{BERKSHELF_DIR}"
       puts "-> cookbook #{name} added to berkshelf.\n\n"
     else
       raise "\n!!!\n   Error adding to berkshelf: #{name}\n!!!\n\n"
@@ -63,8 +67,8 @@ namespace :cookbooks do
   task :auto do
     cookbooks = {
       :java => "https://github.com/opscode-cookbooks/java.git",
+      :scala => "https://github.com/RiotGames/scala-cookbook.git",
       :python => "https://github.com/opscode-cookbooks/python.git",
-      :typesafe => "https://github.com/gildegoma/chef-typesafe-stack.git",
       :golang => "https://github.com/NOX73/chef-golang.git",
       :nodejs => "https://github.com/mdxp/nodejs-cookbook.git",
       :nvm => "https://github.com/hipsnip-cookbooks/nvm.git"
@@ -73,7 +77,7 @@ namespace :cookbooks do
 
     cookbooks.each_pair do |name, url|
       clone(name, url)
-      #berksInstall(name) #disabled for now
+      berksInstall(name) #disabled for now
     end
 
   end
