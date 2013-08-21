@@ -18,6 +18,7 @@ Vagrant.configure("2") do |config|
   config.vm.provider :virtualbox do |vb|
     #vb.customize ["modifyvm", :id, "--hwvirtex", "on"] #in case it is needed
     #vb.customize ["modifyvm", :id, "--pae", "on"] #in case it is needed
+    #vb.customize ["modifyvm", :id, "--memory", "512"] #min ram to build box
     #vb.customize ["modifyvm", :id, "--cpus", "1"] #making sure cpus are accounted at min
     #vb.gui = true #just in case
   end
@@ -26,6 +27,7 @@ Vagrant.configure("2") do |config|
   config.vm.network :private_network, ip: "10.10.10.10"
   config.ssh.forward_agent = true
   config.ssh.timeout = 300
+  config.ssh.max_tries = 40
 
   # disable shared folder
   config.vm.synced_folder ".", "/vagrant", id: "vagrant-root", disabled: true
@@ -35,14 +37,14 @@ Vagrant.configure("2") do |config|
   config.vm.provision :shell, inline: installs
 
   # berkshelf - if we want to utilize
-  #config.berkshelf.enabled = true
+  # config.berkshelf.enabled = true
 
   # chef
+  #config.omnibus.chef_version = :latest #Define omnibus client to utilize
   config.vm.provision "chef_solo" do |chef|
+   #chef.log_level = :debug
    #chef.cookbooks_path = "../../scripts/cookbooks"
    #chef.data_bags_path = "../../scripts/data_bags"
-   #chef.log_level = :debug
   end
 
 end
-
