@@ -28,7 +28,8 @@ BASE_GEM_INSTALL_LIST = [
 ]
 
 BASE_VAGRANT_PLUGINS = [
-  "vagrant-berkshelf"
+  "vagrant-berkshelf",
+  "vagrant-omnibus"
 ]
 
 task :default do
