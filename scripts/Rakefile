@@ -69,6 +69,7 @@ namespace :cookbooks do
   desc "Auto Update of all known remote cookbooks"
   task :auto do
     cookbooks = {
+      :apt => "https://github.com/opscode-cookbooks/apt.git",
       :"build-essential" => "https://github.com/opscode-cookbooks/build-essential.git",
       :dmg => "https://github.com/opscode-cookbooks/dmg.git",
       :git => "https://github.com/opscode-cookbooks/git.git",
