@@ -50,6 +50,7 @@ Vagrant.configure("2") do |config|
    chef.add_recipe "java"
    chef.add_recipe "nodejs"
    chef.add_recipe "nvm"
+   chef.add_recipe "python"
   end
 
 end
