@@ -11,8 +11,8 @@ SCRIPT
 Vagrant.configure("2") do |config|
   # Base setup
   config.vm.box = 'holobot-dev'
-  #config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/saucy/current/saucy-server-cloudimg-amd64-vagrant-disk1.box'
-  config.vm.box_url = '../base-boxes/saucy-server-cloudimg-amd64-vagrant-disk1.box'
+  #config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'
+  config.vm.box_url = '../base-boxes/raring-server-cloudimg-amd64-vagrant-disk1.box'
 
   # Vbox specific configs, should think about removing these
   config.vm.provider :virtualbox do |vb|
@@ -30,7 +30,8 @@ Vagrant.configure("2") do |config|
   config.ssh.max_tries = 40
 
   # disable shared folder
-  config.vm.synced_folder ".", "/vagrant", id: "vagrant-root", disabled: true
+  #config.vm.synced_folder ".", "/vagrant", id: "vagrant-root", disabled: true
+  config.vm.synced_folder "../../../Holobot", "/tmp/Holobot"
 
   # installs
   config.vm.provision :shell, inline: upgrade
@@ -40,9 +41,11 @@ Vagrant.configure("2") do |config|
   # config.berkshelf.enabled = true
 
   # chef
-  #config.omnibus.chef_version = :latest #Define omnibus client to utilize
+  config.omnibus.chef_version = :latest #Define omnibus client to utilize
   config.vm.provision "chef_solo" do |chef|
-   #chef.log_level = :debug
+   chef.log_level = :debug
+   chef.cookbooks_path = ["../../scripts/berkshelf", "../../scripts/cookbooks"]
+   chef.add_recipe "java"
    #chef.cookbooks_path = "../../scripts/cookbooks"
    #chef.data_bags_path = "../../scripts/data_bags"
   end
