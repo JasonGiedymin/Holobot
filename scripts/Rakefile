@@ -69,12 +69,18 @@ namespace :cookbooks do
   desc "Auto Update of all known remote cookbooks"
   task :auto do
     cookbooks = {
+      :"build-essential" => "https://github.com/opscode-cookbooks/build-essential.git",
+      :dmg => "https://github.com/opscode-cookbooks/dmg.git",
+      :git => "https://github.com/opscode-cookbooks/git.git",
       :golang => "https://github.com/NOX73/chef-golang.git",
       :java => "https://github.com/opscode-cookbooks/java.git",
       :nodejs => "https://github.com/mdxp/nodejs-cookbook.git",
       :nvm => "https://github.com/hipsnip-cookbooks/nvm.git",
       :python => "https://github.com/opscode-cookbooks/python.git",
+      :runit => "https://github.com/opscode-cookbooks/runit.git",
       :scala => "https://github.com/RiotGames/scala-cookbook.git",
+      :windows => "https://github.com/opscode-cookbooks/windows.git",
+      :yum => "https://github.com/opscode-cookbooks/yum.git"
     }
     puts "Running auto update..."
 
