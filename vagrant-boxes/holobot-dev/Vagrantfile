@@ -26,12 +26,11 @@ Vagrant.configure("2") do |config|
   # Network
   config.vm.network :private_network, ip: "10.10.10.10"
   config.ssh.forward_agent = true
-  config.ssh.timeout = 300
+  config.ssh.timeout = 500
   config.ssh.max_tries = 40
 
   # disable shared folder
-  #config.vm.synced_folder ".", "/vagrant", id: "vagrant-root", disabled: true
-  config.vm.synced_folder "../../../Holobot", "/tmp/Holobot"
+  config.vm.synced_folder ".", "/vagrant", id: "vagrant-root", disabled: true
 
   # installs
   config.vm.provision :shell, inline: upgrade
@@ -43,9 +42,7 @@ Vagrant.configure("2") do |config|
   # chef
   config.omnibus.chef_version = :latest #Define omnibus client to utilize
   config.vm.provision "chef_solo" do |chef|
-   chef.log_level = :debug
-   chef.cookbooks_path = ["../../scripts/berkshelf", "../../scripts/cookbooks"]
-   chef.add_recipe "java"
+   #chef.log_level = :debug
    #chef.cookbooks_path = "../../scripts/cookbooks"
    #chef.data_bags_path = "../../scripts/data_bags"
   end
