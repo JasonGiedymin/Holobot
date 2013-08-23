@@ -49,10 +49,12 @@ namespace :cookbooks do
 
   def berksInstall(name)
     puts "Adding to berkshelf [ #{name} ]"
-    if system "cd #{COOKBOOKS_DIR}/#{name} && berks install --path #{BERKSHELF_DIR}"
-      puts "-> cookbook #{name} added to berkshelf.\n\n"
-    else
-      raise "\n!!!\n   Error adding to berkshelf: #{name}\n!!!\n\n"
+    if File.exists?("#{COOKBOOKS_DIR}/#{name}/Berksfile")
+      if system "cd #{COOKBOOKS_DIR}/#{name} && berks install --path #{BERKSHELF_DIR}"
+        puts "-> cookbook #{name} added to berkshelf.\n\n"
+      else
+        raise "\n!!!\n   Error adding to berkshelf: #{name}\n!!!\n\n"
+      end
     end
   end
 
@@ -67,12 +69,12 @@ namespace :cookbooks do
   desc "Auto Update of all known remote cookbooks"
   task :auto do
     cookbooks = {
-      :java => "https://github.com/opscode-cookbooks/java.git",
-      :scala => "https://github.com/RiotGames/scala-cookbook.git",
-      :python => "https://github.com/opscode-cookbooks/python.git",
       :golang => "https://github.com/NOX73/chef-golang.git",
+      :java => "https://github.com/opscode-cookbooks/java.git",
       :nodejs => "https://github.com/mdxp/nodejs-cookbook.git",
-      :nvm => "https://github.com/hipsnip-cookbooks/nvm.git"
+      :nvm => "https://github.com/hipsnip-cookbooks/nvm.git",
+      :python => "https://github.com/opscode-cookbooks/python.git",
+      :scala => "https://github.com/RiotGames/scala-cookbook.git",
     }
     puts "Running auto update..."
 
