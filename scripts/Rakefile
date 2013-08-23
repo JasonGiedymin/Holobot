@@ -70,6 +70,7 @@ namespace :cookbooks do
   task :auto do
     cookbooks = {
       :apt => "https://github.com/opscode-cookbooks/apt.git",
+      :ark => "https://github.com/opscode-cookbooks/ark.git",
       :"build-essential" => "https://github.com/opscode-cookbooks/build-essential.git",
       :dmg => "https://github.com/opscode-cookbooks/dmg.git",
       :git => "https://github.com/opscode-cookbooks/git.git",
