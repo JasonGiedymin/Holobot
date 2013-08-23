@@ -45,6 +45,8 @@ Vagrant.configure("2") do |config|
    #chef.log_level = :debug
    chef.cookbooks_path = ["../../scripts/berkshelf", "../../scripts/cookbooks"]
    #chef.data_bags_path = "../../scripts/data_bags"
+
+   chef.add_recipe "java"
   end
 
 end
