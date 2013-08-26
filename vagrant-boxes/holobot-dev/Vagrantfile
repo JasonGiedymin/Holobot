@@ -46,12 +46,20 @@ Vagrant.configure("2") do |config|
    chef.cookbooks_path = ["../../scripts/berkshelf", "../../scripts/cookbooks"]
    #chef.data_bags_path = "../../scripts/data_bags"
 
+   chef.json = { 
+   # Override default attributes here.
+      "scala" => {
+        "version" => "2.10.2",
+        "url" => "http://www.scala-lang.org/files/archive/scala-2.10.2.tgz"
+      }
+   }
+
    chef.add_recipe "golang"
    chef.add_recipe "java"
    chef.add_recipe "nodejs"
    chef.add_recipe "nvm"
    chef.add_recipe "python"
-   #chef.add_recipe "scala"
+   chef.add_recipe "scala"
   end
 
 end
