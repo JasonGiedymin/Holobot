@@ -54,6 +54,7 @@ Vagrant.configure("2") do |config|
       }
    }
 
+   chef.add_recipe "docker"
    chef.add_recipe "golang"
    chef.add_recipe "java"
    chef.add_recipe "nodejs"
