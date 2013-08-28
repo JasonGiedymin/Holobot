@@ -1,0 +1,9 @@
+# README
+
+## Execution Order
+1. bundle install
+1. rake install:auto
+    # auto:go will run all of these tasks:
+    rake clean
+    rake cookbooks:clone
+    rake install:deps

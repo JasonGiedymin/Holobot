@@ -1,3 +1,5 @@
+## Vagrantfile
+
 upgrade = <<SCRIPT
 echo Running apt-get update and upgrade...
 sudo apt-get update -y
@@ -8,7 +10,11 @@ installs = <<SCRIPT
 sudo apt-get install -y vim git
 SCRIPT
 
+Vagrant.require_plugin 'vagrant-berkshelf'
+Vagrant.require_plugin 'vagrant-omnibus'
+
 Vagrant.configure("2") do |config|
+
   # Base setup
   config.vm.box = 'holobot-dev'
   #config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'

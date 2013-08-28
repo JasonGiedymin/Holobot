@@ -3,8 +3,22 @@
 # `rake` for usage
 #
 
+## require
 require 'rake/clean'
 
+
+# Immediately sync all stdout so that tools like buildbot can
+# immediately load in the output.
+$stdout.sync = true
+$stderr.sync = true
+
+
+## init
+# Change to the directory of this file.
+Dir.chdir(File.expand_path("../", __FILE__))
+
+
+## consts
 HOME = File.dirname(__FILE__)
 COOKBOOKS_DIR = "#{HOME}/cookbooks"
 BERKSHELF_DIR = "#{HOME}/berkshelf"
@@ -15,16 +29,14 @@ CLEAN = FileList[
   "./Berksfile.lock",
   "./berkshelf",
   "./Thorfile",
-  "./.gitignore",
   "./.git",
-  "./Gemfile",
-  "./Gemfile.lock",
   "./Vagrantfile"
 ].exclude("#{COOKBOOKS_DIR}/README.md")
 
+# Do not use, use gemfile instead
 BASE_GEM_INSTALL_LIST = [
   #"vagrant", # gem bundle version is out of date, do manual install :-()
-  "berkshelf"
+  #"berkshelf"
 ]
 
 BASE_VAGRANT_PLUGINS = [
@@ -32,6 +44,8 @@ BASE_VAGRANT_PLUGINS = [
   "vagrant-omnibus"
 ]
 
+
+## Tasks
 task :default do
   Rake::Task["help:examples"].invoke
 end
@@ -66,8 +80,8 @@ namespace :cookbooks do
     clone(name, url)    
   end
 
-  desc "Auto Update of all known remote cookbooks"
-  task :auto do
+  desc "Clones all known remote cookbooks"
+  task :clone do
     cookbooks = {
       :apt => "https://github.com/opscode-cookbooks/apt.git",
       :ark => "https://github.com/opscode-cookbooks/ark.git",
@@ -88,7 +102,7 @@ namespace :cookbooks do
       :windows => "https://github.com/opscode-cookbooks/windows.git",
       :yum => "https://github.com/opscode-cookbooks/yum.git"
     }
-    puts "Running auto update..."
+    puts "Running clone..."
 
     cookbooks.each_pair do |name, url|
       clone(name, url)
@@ -98,6 +112,11 @@ namespace :cookbooks do
   end
 end
 
+
+namespace :vagrant do
+  desc "install vagrant dependencies"
+
+end
 
 # Install namespace for setting up base environment
 namespace :install do
@@ -111,6 +130,7 @@ namespace :install do
   end
 
   def installVagrantPlugin(pluginName)
+    system "vagrant --version"
     puts "vagrant plugin install [ #{pluginName} ]"
     if system "vagrant plugin install #{pluginName}"
       puts "-> Installed vagrant plugin #{pluginName}...\n\n"
@@ -119,19 +139,45 @@ namespace :install do
     end
   end
 
-  desc "Install dependencies for Holobot"
-  task :deps do
-    puts "Installing dependencies for Holobot"
-    BASE_GEM_INSTALL_LIST.each{ |gemName| installGem(gemName) }
+  # def bindlerSetup()
+  #   if system "vagrant bindler setup"
+  #     puts "-> bindler setup done...\n\n"
+  #   else
+  #     raise "\n!!!\n   Error trying to run bindler setup\n!!!\n\n"
+  #   end
+  # end
 
-    puts "Installing vagrant plugins"
-    BASE_VAGRANT_PLUGINS.each{ |plugin| installVagrantPlugin(plugin) }
+  # AVOID BINDLER - TOO MUCH MONKEY PATCHING!
+  # bindler is bundler for vagrant, it will install vagrant plugins specified from plugins.json
+  # def bindlerRun()
+  #   if system "vagrant plugin bundle"
+  #     puts "-> installing vagrant plugins...\n\n"
+  #   else
+  #     raise "\n!!!\n   Error trying to install vagrant plugins\n!!!\n\n"
+  #   end
+  # end
 
-    puts "\n\n Complete."
+  desc "Install gems for Holobot"
+  task :gems do
+    #puts "Installing gems for Holobot..."
+    puts "!USE Gemfile instead!!!"
+    puts "run:"
+    puts "    bundle install"
+    #BASE_GEM_INSTALL_LIST.each{ |gemName| installGem(gemName) }
   end
 
-end
+  desc "Install deps for Holobot"
+  task :deps do
+    BASE_VAGRANT_PLUGINS.each{ |plugin| installVagrantPlugin(plugin) }
+  end
 
+  desc "Full auto install."
+  task :auto do
+    Rake::Task["clean"].invoke
+    Rake::Task["cookbooks:clone"].invoke
+    Rake::Task["install:deps"].invoke
+  end
+end
 
 namespace :help do
   desc "usage examples"
@@ -142,7 +188,7 @@ namespace :help do
     puts " Usage Examples:"
     puts "  `rake -T` lists all the available tasks"
     puts "  `rake clean` cleans up cookbooks and misc files"
-    puts "  `rake cookbooks:auto` will autoupdate cookbooks by cloning into cookbooks/"
+    puts "  `rake cookbooks:clone` will autoupdate cookbooks by cloning into cookbooks/"
     puts "  `rake cookbooks:manual['java','https://github.com/opscode-cookbooks/java.git']` to manually clone a cookbook"
     puts "---------------------------"
     puts "\n\n"

@@ -36,6 +36,9 @@ results
 ## Python
 *.pyc
 
+## Ruby
+Gemfile.lock
+
 ## NodeJS Specific
 .migrate
 npm-debug.log
