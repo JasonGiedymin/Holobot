@@ -85,7 +85,7 @@ namespace :cookbooks do
     cookbooks = {
       :apt => "https://github.com/opscode-cookbooks/apt.git",
       :ark => "https://github.com/opscode-cookbooks/ark.git",
-      "build_essential" => "https://github.com/opscode-cookbooks/build-essential.git",
+      :"build-essential" => "https://github.com/opscode-cookbooks/build-essential.git",
       :dpkg_autostart => "https://github.com/hw-cookbooks/dpkg_autostart",
       :dmg => "https://github.com/opscode-cookbooks/dmg.git",
       :docker => "https://github.com/bflad/chef-docker.git",
@@ -113,37 +113,39 @@ namespace :cookbooks do
 end
 
 
-namespace :vagrant do
-  def up()
-    if system "vagrant up"
-    else
-      raise "\n!!!\n   Error trying to vagrant up\n!!!\n\n"
-    end
-  end
+# NOT WORKING
+# Revisit some day
+# namespace :vagrant do
+#   def up()
+#     if system "vagrant up"
+#     else
+#       raise "\n!!!\n   Error trying to vagrant up\n!!!\n\n"
+#     end
+#   end
 
-  def destroy()
-    if system "vagrant destroy --force"
-    else
-      raise "\n!!!\n   Error trying to destroy vagrant litter\n!!!\n\n"
-    end
-  end
+#   def destroy()
+#     if system "vagrant destroy --force"
+#     else
+#       raise "\n!!!\n   Error trying to destroy vagrant litter\n!!!\n\n"
+#     end
+#   end
 
-  def navToVagrant()
-    Dir.chdir(File.expand_path("../../vagrant-boxes/holobot-dev", "Vagrantfile"))
-  end
+#   def navToVagrant()
+#     Dir.chdir(File.expand_path("../../vagrant-boxes/holobot-dev", "Vagrantfile"))
+#   end
 
-  desc "up"
-  task :up do
-    navToVagrant()
-    up()
-  end
+#   desc "up"
+#   task :up do
+#     navToVagrant()
+#     up()
+#   end
 
-  desc "destroy"
-  task :destroy do
-    navToVagrant()
-    destroy()
-  end
-end
+#   desc "destroy"
+#   task :destroy do
+#     navToVagrant()
+#     destroy()
+#   end
+# end
 
 # Install namespace for setting up base environment
 namespace :install do
@@ -200,7 +202,7 @@ namespace :install do
 
   desc "Full auto install."
   task :auto do
-    Rake::Task["clean"].invoke
+    Rake::Task["clobber"].invoke
     Rake::Task["cookbooks:clone"].invoke
     Rake::Task["install:deps"].invoke
   end
