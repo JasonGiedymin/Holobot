@@ -32,12 +32,12 @@ Vagrant.configure("2") do |config|
   end
 
   # Network
-  config.vm.network :public_network, :bridge => 'en0: Wi-Fi (AirPort)'
-  # config.vm.network :private_network, ip: "10.10.10.10"
-  # config.ssh.username = 'core'
+  # config.vm.network :private_network, ip: "10.10.10.10", :adapter => 2
+  config.vm.network :public_network, :bridge => 'en0: Wi-Fi (AirPort)'#, :adapter => 3
+  config.ssh.username = 'core'
   # config.ssh.forward_agent = true
-  # config.ssh.timeout = 500
-  # config.ssh.max_tries = 40
+  config.ssh.timeout = 500
+  config.ssh.max_tries = 40
 
   # disable shared folder
   # config.vm.synced_folder ".", "/vagrant", id: "vagrant-root", disabled: true
