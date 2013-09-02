@@ -1,4 +1,5 @@
 ## Vagrantfile
+appname = 'Holobot-dev-v3'
 
 upgrade = <<SCRIPT
 echo Running apt-get update and upgrade...
@@ -28,14 +29,14 @@ Vagrant.configure("2") do |config|
     vb.customize ["modifyvm", :id, "--pae", "on"] #in case it is needed
     vb.customize ["modifyvm", :id, "--memory", "512"] #min ram to build box
     vb.customize ["modifyvm", :id, "--cpus", "1"] #making sure cpus are accounted at min
-    vb.gui = true #just in case
+    #vb.gui = true #just in case
   end
 
   # Network
   # config.vm.network :private_network, ip: "10.10.10.10", :adapter => 2
   config.vm.network :public_network, :bridge => 'en0: Wi-Fi (AirPort)'#, :adapter => 3
-  config.ssh.username = 'core'
-  # config.ssh.forward_agent = true
+  # config.ssh.username = 'core'
+  config.ssh.forward_agent = true
   config.ssh.timeout = 500
   config.ssh.max_tries = 40
 
@@ -45,6 +46,8 @@ Vagrant.configure("2") do |config|
   # installs
   #config.vm.provision :shell, inline: upgrade
   #config.vm.provision :shell, inline: installs
+
+  config.vm.provision :shell, inline: "echo '#{appname} started...'"
 
   # berkshelf - if we want to utilize
   # config.berkshelf.enabled = true
