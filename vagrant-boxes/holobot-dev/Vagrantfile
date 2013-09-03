@@ -33,8 +33,8 @@ Vagrant.configure("2") do |config|
   end
 
   # Network
-  # config.vm.network :private_network, ip: "10.10.10.10", :adapter => 2
-  config.vm.network :public_network, :bridge => 'en0: Wi-Fi (AirPort)'#, :adapter => 3
+  config.vm.network :private_network, ip: "10.10.10.10" # assigned to adapter 2 by default
+  config.vm.network :public_network, :bridge => "en0: Wi-Fi (Airport)", :adapter => 3 # the main card configuration
   # config.ssh.username = 'core'
   config.ssh.forward_agent = true
   config.ssh.timeout = 500
