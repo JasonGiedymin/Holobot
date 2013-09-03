@@ -22,6 +22,7 @@ Dir.chdir(File.expand_path("../", __FILE__))
 HOME = File.dirname(__FILE__)
 COOKBOOKS_DIR = "#{HOME}/cookbooks"
 BERKSHELF_DIR = "#{HOME}/berkshelf"
+BASE_BOX_DIR = "#{HOME}/../vagrant-boxes/base-boxes"
 
 CLEAN = FileList[
   "#{COOKBOOKS_DIR}/*",
@@ -45,10 +46,32 @@ BASE_VAGRANT_PLUGINS = [
   "vagrant-omnibus"
 ]
 
+BASE_BOX_URLS = {
+  :coreos_production_vagrant => 'http://storage.core-os.net/coreos/amd64-generic/dev-channel/coreos_production_vagrant.box'
+}
+
 
 ## Tasks
 task :default do
   Rake::Task["help:examples"].invoke
+end
+
+namespace :baseboxes do
+  def curl(name, url)
+    puts "Downloading base box [ #{name} via #{url} ]"
+    if system "curl #{url} > #{BASE_BOX_DIR}/#{name}.box"
+      puts "-> Base box #{name} downloaded.\n\n"
+    else
+      raise "\n!!!\n   Error downloading base box: #{url}\n!!!\n\n"
+    end
+  end
+
+  desc "Update base boxes"
+  task :download do
+    BASE_BOX_URLS.each_pair do |name, url|
+      curl(name, url)
+    end
+  end
 end
 
 # Base namespace
@@ -204,6 +227,7 @@ namespace :install do
   desc "Full auto install."
   task :auto do
     Rake::Task["clobber"].invoke
+    Rake::Task["baseboxes:download"].invoke
     Rake::Task["cookbooks:clone"].invoke
     Rake::Task["install:deps"].invoke
   end
