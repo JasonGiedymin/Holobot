@@ -1,0 +1,35 @@
+!/bin/bash
+
+VIRT=$(coreos-detect-virt)
+STATE=/var/lib/etcd
+DEFAULT_ARGS="-d $STATE -f -cl 0.0.0.0 -sl 0.0.0.0"
+
+# stop stock etcd
+# don't do the below, it will crash the app
+# exec systemctl stop etcd
+
+if [ "${VIRT}" != "ec2" ]; then
+        echo "Detected environment \"${VIRT}\", just starting solo master..."
+        exec /usr/bin/etcd ${DEFAULT_ARGS}
+fi
+
+META_URL="http://169.254.169.254/latest"
+MY_IP=$(curl -s $META_URL/meta-data/local-ipv4)
+BOOTSTRAP="/var/run/etcd/bootstrap.config"
+
+
+[ ! -e $BOOTSTRAP ] && echo bootstrap config missing && exit 1
+
+CLUSTER_ARGS="-n $MY_IP -c $MY_IP:4001 -cl 0.0.0.0 -s $MY_IP:7001 -sl 0.0.0.0"
+
+# strip blank lines
+IPS=$(grep -v $MY_IP $BOOTSTRAP|grep -v '^\n$' |sed 's/$/:7001/'|tr '\n' ','|sed 's/^,//'|sed 's/,$//')
+
+if [ -z "$IPS" ]; then
+        echo "becoming master..."
+        exec /usr/bin/etcd ${DEFAULT_ARGS} ${CLUSTER_ARGS}
+else
+        echo "trying $IPS"
+        set -x
+        exec /usr/bin/etcd ${DEFAULT_ARGS} ${CLUSTER_ARGS} -C "$IPS"
+fi

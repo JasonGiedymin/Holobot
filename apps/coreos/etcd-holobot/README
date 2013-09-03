@@ -1,0 +1,51 @@
+etcd-holobot
+------------
+
+Custom etcd service and bootstrap.
+
+Otherwise these modifications would have to be part of sdk and the coreos
+overlay.
+
+
+## Pre-req
+
+Read http://coreos.com/docs/using-coreos/#process-management-with-systemd
+
+It explains usage of etcd and how to create custom services either on the host
+or from within a container.
+
+
+## Getting Started
+    
+    # copy the files to the local media
+    # TODO
+
+    # chmod the bootstrap file
+    sudo chmod 755 /media/state/bin/etcd-holobot-bootstrap
+
+    # stop current etcd
+    # this will have to happen for every boot
+    # think about putting it in the etcd script,
+    # a call to the below, instead of manual intervention
+    # sudo systemctl stop etcd
+
+    # systemctl start via restart
+    sudo systemctl restart /media/state/units/etcd-holobot.service
+
+    # test that it is running
+    # etcd should be running (but holobot's version)
+    ps -A | grep etcd
+
+    # curl should return json
+    # make sure to do an ifconfig and replace <bridged_ip_here>
+    # with a valid ip from DHCP/network
+    curl -L http://127.0.0.1:4001/v1/keys
+    curl -L http://<bridged_ip_here>:4001/v1/keys
+
+    # now repeat the above from an external machine
+    curl -L http://127.0.0.1:4001/v1/keys
+    curl -L http://<bridged_ip_here>:4001/v1/keys
+
+    # to watch journal entries and verify etcd is running
+    journalctl -u etcd-holobot.service -f
+
