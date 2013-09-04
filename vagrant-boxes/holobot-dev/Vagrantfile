@@ -56,6 +56,7 @@ def runChef(config, props)
     chef.json = props[:chef][:json]
 
     chef.add_recipe "docker"
+    chef.add_recipe "etcd"
     chef.add_recipe "golang"
     chef.add_recipe "java"
     # chef.add_recipe "nodejs"
@@ -101,8 +102,8 @@ Vagrant.configure("2") do |config|
   config.ssh.timeout = 500
   config.ssh.max_tries = 40
 
-  # disable shared folder
-  config.vm.synced_folder ".", "/vagrant", id: "vagrant-root", disabled: true
+  # NFS Mount
+  #config.vm.synced_folder ".", "/vagrant", id: "vagrant-root", :nfs => true #requires root privs
 
   # In a purely functional lang I would curry and compose the below
   # ruby?
