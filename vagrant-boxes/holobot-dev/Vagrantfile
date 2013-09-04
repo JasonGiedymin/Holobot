@@ -91,8 +91,11 @@ Vagrant.configure("2") do |config|
   end
 
   # Network
-  config.vm.network :private_network, ip: "10.10.10.10"#, :adapter => 2
-  config.vm.network :public_network, :bridge => 'en0: Wi-Fi (AirPort)', :mac => '0800d2FF88F2', :ip => "192.168.0.189" #:adapter => 3
+  config.vm.network :private_network, ip: "10.10.10.10"#, :adapter => 2 # assigned to adapter 2 by default
+  
+  # the main card configuration
+  config.vm.network :public_network, :bridge => 'en0: Wi-Fi (AirPort)', :mac => '0800d2FF88F2', :adapter => 3
+  
   #config.ssh.username = 'core'
   config.ssh.forward_agent = true
   config.ssh.timeout = 500
