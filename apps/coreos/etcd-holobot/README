@@ -16,3 +16,16 @@ or from within a container.
 
 
 Continue reading the following [instructions here](https://github.com/JasonGiedymin/Holobot/wiki/etcd-holobot).
+
+## Improved Version
+
+The script here has been gisted and improved by the CoreOS devs here
+
+See here: [https://gist.github.com/philips/6458572](https://gist.github.com/philips/6458572)
+
+## Patch
+
+This script soon should not be necessary as a patch to include listening
+on all devices is configured.
+
+See here: [commit](https://github.com/coreos/coreos-overlay/commit/965134c582ec1f40034d29cd7f3a6e103b244fd8)
