@@ -5,6 +5,7 @@
 
 ## require
 require 'rake/clean'
+import 'rake_helpers/vagrant_helper.rb'
 
 
 # Immediately sync all stdout so that tools like buildbot can
@@ -20,13 +21,14 @@ Dir.chdir(File.expand_path("../", __FILE__))
 
 ## consts
 HOME = File.dirname(__FILE__)
-COOKBOOKS_DIR = "#{HOME}/cookbooks"
-BERKSHELF_DIR = "#{HOME}/berkshelf"
-THIRDPARTY_DIR = "#{HOME}/thirdparty"
-BASE_BOX_DIR = "#{HOME}/../vagrant-boxes/base-boxes"
+HOME_COOKBOOKS = "#{HOME}/cookbooks"
+HOME_BERKSHELF = "#{HOME}/berkshelf"
+HOME_THIRDPARTY = "#{HOME}/thirdparty"
+HOME_BASE_BOX = "#{HOME}/vagrant-boxes/base-boxes"
+HOME_VAGRANT_BOX = "#{HOME}/vagrant-boxes/holobot-dev"
 
 CLEAN = FileList[
-  "#{COOKBOOKS_DIR}/*",
+  "#{HOME_COOKBOOKS}/*",
   "./Berksfile",
   "./Berksfile.lock",
   "./berkshelf",
@@ -34,7 +36,7 @@ CLEAN = FileList[
   "./Thorfile",
   "./.git",
   "./Vagrantfile"
-].exclude("#{COOKBOOKS_DIR}/README.md")
+].exclude("#{HOME_COOKBOOKS}/README.md")
 
 # Do not use, use gemfile instead
 BASE_GEM_INSTALL_LIST = [
@@ -72,8 +74,8 @@ end
 namespace :baseboxes do
   def curl(name, url)
     puts "Downloading base box [ #{name} via #{url} ]"
-    if system "curl #{url} > #{BASE_BOX_DIR}/#{name}.box"
-      puts "-> Base box #{name} downloaded.\n\n"
+    if system "curl #{url} > #{HOME_BASE_BOX}/#{name}.box"
+      puts "-> Base box #{name} downloaded to [#{HOME_BASE_BOX}/#{name}.box].\n\n"
     else
       raise "\n!!!\n   Error downloading base box: #{url}\n!!!\n\n"
     end
@@ -85,7 +87,7 @@ namespace :baseboxes do
       # If the file doesn't exist get it
       # otherwise if it does already exist
       # then only get it if tracking is enabled
-      if !File.exists?("#{BASE_BOX_DIR}/#{name}.box")
+      if !File.exists?("#{HOME_BASE_BOX}/#{name}.box")
         curl(name, box_info['url'])
       else # File exists, but only get if tracking is on
         curl(name, box_info['url']) if box_info['track']
@@ -107,8 +109,8 @@ namespace :cookbooks do
 
   def berksInstall(name)
     puts "Adding to berkshelf [ #{name} ]"
-    if File.exists?("#{COOKBOOKS_DIR}/#{name}/Berksfile")
-      if system "cd #{COOKBOOKS_DIR}/#{name} && berks install --path #{BERKSHELF_DIR}"
+    if File.exists?("#{HOME_COOKBOOKS}/#{name}/Berksfile")
+      if system "cd #{HOME_COOKBOOKS}/#{name} && berks install --path #{HOME_BERKSHELF}"
         puts "-> cookbook #{name} added to berkshelf.\n\n"
       else
         raise "\n!!!\n   Error adding to berkshelf: #{name}\n!!!\n\n"
@@ -121,7 +123,7 @@ namespace :cookbooks do
     puts "Updating remote cookbooks"
     name = args[:name]
     url = args[:url]
-    clone(name, url, COOKBOOKS_DIR)    
+    clone(name, url, HOME_COOKBOOKS)    
   end
 
   desc "Clones all known remote cookbooks"
@@ -150,7 +152,7 @@ namespace :cookbooks do
     puts "Running clone..."
 
     cookbooks.each_pair do |name, url|
-      clone(name, url, COOKBOOKS_DIR)
+      clone(name, url, HOME_COOKBOOKS)
       berksInstall(name) #disabled for now
     end
 
@@ -198,7 +200,7 @@ namespace :thirdparty do
     Rake::Task["clobber"].invoke
 
     THIRD_PARTY.each_pair do |name, url|
-      clone(name, url, THIRDPARTY_DIR)
+      clone(name, url, HOME_THIRDPARTY)
     end
   end
 end
