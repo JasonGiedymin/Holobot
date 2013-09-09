@@ -63,6 +63,7 @@ end
 namespace :baseboxes do
   def curl(name, url)
     puts "Downloading base box [ #{name} via #{url} ]"
+    Dir.mkdir("#{HOME_BASE_BOX}") unless Dir.exists?("#{HOME_BASE_BOX}")
     if system "curl #{url} > #{HOME_BASE_BOX}/#{name}.box"
       puts "-> Base box #{name} downloaded to [#{HOME_BASE_BOX}/#{name}.box].\n\n"
     else
