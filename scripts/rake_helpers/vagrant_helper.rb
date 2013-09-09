@@ -7,12 +7,17 @@
 #       in a root rakefile (the importer)
 #
 
-# -----------------------------CONSTS-------------------------------------------
+# -----------------------------CONST--------------------------------------------
 
 SUPPORTED_OS=[
   'ubuntu',
   'coreos'
 ]
+
+# We also define a primary in the multi machine Vagrantfile.
+# but here we define it specificaly anyway to be double safe and is why we
+# will use this const later.
+DEFAULT_OS=SUPPORTED_OS[0]
 
 # Setting mode to weak because vagrant doesn't work with
 # coreos correctly atm. It works but warnings pop up and
@@ -24,7 +29,8 @@ VagrantCommand = Struct.new(:task, :desc, :cmd)
 VAGRANT_CMDS = [
   VagrantCommand.new('up', 'Start vm', 'up'),
   VagrantCommand.new('halt', 'Stop vm', 'halt'),
-  VagrantCommand.new('destroy', 'Destroy and cleanup vm', 'destroy --force')
+  VagrantCommand.new('destroy', 'Destroy and cleanup vm', 'destroy --force'),
+  VagrantCommand.new('ssh', 'SSH onto vm', 'ssh'),
 ]
 
 # -----------------------------METHODS------------------------------------------
@@ -35,7 +41,7 @@ end
 
 def vm_cmd(os, cmd)
   chdir("#{HOME_VAGRANT_BOX}")
-  vagrant_cmd = "vagrant #{cmd}"
+  vagrant_cmd = "vagrant #{cmd} #{os}"
 
   if VAGRANT_STRICT_MODE
     if system vagrant_cmd
@@ -44,6 +50,7 @@ def vm_cmd(os, cmd)
         raise "\n!!!\n   Error trying to run vagrant command [#{vagrant_cmd}]\n!!!\n\n"
     end
   elsif
+    #puts "-> Vagrant command ran: [#{vagrant_cmd}]\n\n"
     system vagrant_cmd
   end # end weak
 end # end vm_cmd
@@ -85,7 +92,7 @@ namespace :vm do
     namespace os do
       VAGRANT_CMDS.each do |command|
 
-        desc command.desc
+        desc "#{command.desc} #{os}"
         task command.task do |t|
           vm_cmd(os, command.cmd)
         end # end dynamic task
@@ -94,4 +101,13 @@ namespace :vm do
     end # end namespace os
 
   end # end os
+
+  VAGRANT_CMDS.each do |command|
+    os=DEFAULT_OS
+    desc "#{command.desc} #{os}"
+    task command.task do |t|
+      vm_cmd(os, command.cmd)
+    end # end default vm task
+  end # end default command each
+
 end # end vm

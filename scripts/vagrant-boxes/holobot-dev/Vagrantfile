@@ -1,6 +1,6 @@
 ## Vagrantfile
 
-## consts
+# -----------------------------CONST--------------------------------------------
 HOME = File.dirname(__FILE__)
 HOME_SCRIPTS = "#{HOME}/../../../scripts" # make it explicit we are in scripts
 HOME_BASE_BOX = "#{HOME}/../base-boxes"
@@ -39,6 +39,9 @@ props = {
   } # end chef
 } # end props
 
+
+#------------------------------METHODS------------------------------------------
+
 def prepare(config, props)
   # installs
   config.vm.provision :shell, inline: props[:scripts][:upgrade]
@@ -73,33 +76,15 @@ def runChef(config, props)
     chef.add_recipe "python"
     chef.add_recipe "scala"
   end
+
+  # config.berkshelf.enabled = true
 end
 
 def cleanup(config, props)
   config.vm.provision :shell, inline: props[:scripts][:cleanup]
 end
 
-#Vagrant.require_plugin 'vagrant-vbguest'
-#Vagrant.require_plugin 'vagrant-berkshelf'
-#Vagrant.require_plugin 'vagrant-omnibus'
-
-Vagrant.configure("2") do |config|
-
-  # Base setup
-  config.vm.box = props[:appname]
-  #config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'
-  config.vm.box_url = "#{HOME_BASE_BOX}/coreos_production_vagrant.box"
-  #config.vm.box_url = "#{HOME_BASE_BOX}/raring-server-cloudimg-amd64-vagrant-disk1.box"
-
-  # Vbox specific configs, should think about removing these
-  config.vm.provider :virtualbox do |vb|
-   vb.customize ["modifyvm", :id, "--hwvirtex", "on"] #in case it is needed
-   vb.customize ["modifyvm", :id, "--pae", "on"] #in case it is needed
-   vb.customize ["modifyvm", :id, "--memory", "1024"] #min ram to build box
-   vb.customize ["modifyvm", :id, "--cpus", "1"] #making sure cpus are accounted at min
-   # vb.gui = true #just in case
-  end
-
+def network(config, props)
   # Network
   config.vm.network :private_network, ip: "10.10.10.10"#, :adapter => 2 # assigned to adapter 2 by default
   
@@ -110,20 +95,57 @@ Vagrant.configure("2") do |config|
   #config.ssh.forward_agent = true
   #config.ssh.timeout = 500
   #config.ssh.max_tries = 40
+end
 
+def mounts(config, props)
   # NFS Mount
-  config.vm.synced_folder "#{HOME_NFS_MOUNT}", "/home/core/share", :nfs => true #requires root privs
+  # config.vm.synced_folder "#{HOME_NFS_MOUNT}", "/home/core/share", :nfs => true #requires root privs
+end
 
-  # In a purely functional lang I would curry and compose the below
-  # ruby?
-  # prepare(config, props)
-  # runChef(config, props)
-  # cleanup(config, props)
+def hypervisor_settings(config, props)
+  # Vbox specific configs, should think about removing these
+  config.vm.provider :virtualbox do |vb|
+   vb.customize ["modifyvm", :id, "--hwvirtex", "on"] #in case it is needed
+   vb.customize ["modifyvm", :id, "--pae", "on"] #in case it is needed
+   vb.customize ["modifyvm", :id, "--memory", "1024"] #min ram to build box
+   vb.customize ["modifyvm", :id, "--cpus", "1"] #making sure cpus are accounted at min
+   # vb.gui = true #just in case
+  end
+end
 
-  # berkshelf - if we want to utilize
-  # config.berkshelf.enabled = true
-  
-  # cleanup(config, props)
 
-  finishMessage(config, props)
+#------------------------------MAIN---------------------------------------------
+
+# Plugins
+#Vagrant.require_plugin 'vagrant-vbguest'
+#Vagrant.require_plugin 'vagrant-berkshelf'
+#Vagrant.require_plugin 'vagrant-omnibus'
+
+Vagrant.configure("2") do |config|
+
+  # Base setup
+  config.vm.box = props[:appname]
+
+  config.vm.define "ubuntu", primary: true do |ubuntu|
+    # config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'
+    ubuntu.vm.box_url = "#{HOME_BASE_BOX}/raring-server-cloudimg-amd64-vagrant-disk1.box"
+    # In a purely functional lang I would curry and compose the below. Ruby?
+    hypervisor_settings(ubuntu, props)
+    network(ubuntu, props)
+    mounts(ubuntu, props)
+    prepare(ubuntu, props)
+    runChef(ubuntu, props)
+    cleanup(ubuntu, props)
+    finishMessage(ubuntu, props)
+  end
+
+  config.vm.define "coreos" do |coreos|
+    coreos.vm.box_url = "#{HOME_BASE_BOX}/coreos_production_vagrant.box"
+    hypervisor_settings(coreos, props)
+    #network(coreos, props)
+    # mounts(coreos, props)
+    # runChef(coreos, props)
+    # cleanup(coreos, props)
+    finishMessage(coreos, props)
+  end
 end

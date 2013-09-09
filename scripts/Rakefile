@@ -168,24 +168,6 @@ namespace :install do
     end
   end
 
-  # def bindlerSetup()
-  #   if system "vagrant bindler setup"
-  #     puts "-> bindler setup done...\n\n"
-  #   else
-  #     raise "\n!!!\n   Error trying to run bindler setup\n!!!\n\n"
-  #   end
-  # end
-
-  # AVOID BINDLER - TOO MUCH MONKEY PATCHING!
-  # bindler is bundler for vagrant, it will install vagrant plugins specified from plugins.json
-  # def bindlerRun()
-  #   if system "vagrant plugin bundle"
-  #     puts "-> installing vagrant plugins...\n\n"
-  #   else
-  #     raise "\n!!!\n   Error trying to install vagrant plugins\n!!!\n\n"
-  #   end
-  # end
-
   desc "Install gems for Holobot"
   task :gems do
     #puts "Installing gems for Holobot..."
