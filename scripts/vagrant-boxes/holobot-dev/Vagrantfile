@@ -22,7 +22,7 @@ sudo apt-get clean
 SCRIPT
 
 props = {
-  :appname =>'Holobot-dev-v2.2',
+  :appname =>'Holobot-dev-v2.3',
   :scripts => {
     :upgrade => upgrade,
     :installs => installs,
