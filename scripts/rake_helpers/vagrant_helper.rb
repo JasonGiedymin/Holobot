@@ -53,6 +53,32 @@ def say(word)
 end
 
 
+namespace :baseboxes do
+  def curl(name, url)
+    puts "Downloading base box [ #{name} via #{url} ]"
+    if system "curl #{url} > #{HOME_BASE_BOX}/#{name}.box"
+      puts "-> Base box #{name} downloaded to [#{HOME_BASE_BOX}/#{name}.box].\n\n"
+    else
+      raise "\n!!!\n   Error downloading base box: #{url}\n!!!\n\n"
+    end
+  end
+
+  desc "Update base boxes"
+  task :download do
+    BASE_BOX_URLS.each_pair do |name, box_info|
+      # If the file doesn't exist get it
+      # otherwise if it does already exist
+      # then only get it if tracking is enabled
+      if !File.exists?("#{HOME_BASE_BOX}/#{name}.box")
+        curl(name, box_info['url'])
+      else # File exists, but only get if tracking is on
+        curl(name, box_info['url']) if box_info['track']
+      end
+    end
+  end
+end
+
+
 namespace :vm do
   SUPPORTED_OS.each do |os|
 
