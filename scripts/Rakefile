@@ -5,6 +5,8 @@
 
 ## require
 require 'rake/clean'
+import 'rake_helpers/system_helper.rb'
+import 'rake_helpers/git_helper.rb'
 import 'rake_helpers/vagrant_helper.rb'
 
 
@@ -21,6 +23,7 @@ Dir.chdir(File.expand_path("../", __FILE__))
 
 ## consts
 HOME = File.dirname(__FILE__)
+HOME_UTILS = "#{HOME}/utils"
 HOME_COOKBOOKS = "#{HOME}/cookbooks"
 HOME_BERKSHELF = "#{HOME}/berkshelf"
 HOME_THIRDPARTY = "#{HOME}/thirdparty"
@@ -28,6 +31,7 @@ HOME_BASE_BOX = "#{HOME}/vagrant-boxes/base-boxes"
 HOME_VAGRANT_BOX = "#{HOME}/vagrant-boxes/holobot-dev"
 
 CLEAN = FileList[
+  "#{HOME_UTILS}/*",
   "#{HOME_COOKBOOKS}/*",
   "./Berksfile",
   "./Berksfile.lock",
@@ -65,6 +69,11 @@ THIRD_PARTY = {
   "docker" => "https://github.com/dotcloud/docker.git"
 }
 
+Utility = Struct.new(:name, :url, :tag, :postinstall)
+UTILS = [
+  Utility.new('vagrant', 'https://github.com/mitchellh/vagrant.git', 'v1.3.1', 'rake install')
+]
+
 
 ## Tasks
 task :default do
@@ -74,23 +83,14 @@ end
 
 # Base namespace
 namespace :cookbooks do
-  def clone(name, url, dir)
-    puts "Cloning cookbook [ #{name} via #{url} ]"
-    if system "git clone #{url} #{dir}/#{name}"
-      puts "-> Repository #{url} cloned.\n\n"
-    else
-      raise "\n!!!\n   Error cloning url: #{url}\n!!!\n\n"
-    end
-  end
-
   def berksInstall(name)
     puts "Adding to berkshelf [ #{name} ]"
     if File.exists?("#{HOME_COOKBOOKS}/#{name}/Berksfile")
-      if system "cd #{HOME_COOKBOOKS}/#{name} && berks install --path #{HOME_BERKSHELF}"
-        puts "-> cookbook #{name} added to berkshelf.\n\n"
-      else
-        raise "\n!!!\n   Error adding to berkshelf: #{name}\n!!!\n\n"
-      end
+      shell_cmd(
+        "./",
+        "cd #{HOME_COOKBOOKS}/#{name} && berks install --path #{HOME_BERKSHELF}",
+        "add #{name} cookbook to berkshelf"
+      )
     end
   end
 
@@ -139,57 +139,96 @@ end
 namespace :thirdparty do
   desc "Clone third-party software (docker, etc...)"
   task :clone do
-    Rake::Task["clobber"].invoke
-
     THIRD_PARTY.each_pair do |name, url|
       clone(name, url, HOME_THIRDPARTY)
     end
   end
 end
 
+
 # Install namespace for setting up base environment
 namespace :install do
-  def installGem(gemName)
-    puts "gem install [ #{gemName} ]"
-    if system "gem install #{gemName}"
-      puts "-> Installed #{gemName}...\n\n"
-    else
-      raise "\n!!!\n   Error trying to gem install #{gemName}\n!!!\n\n"
-    end
+  def installGem(gem_name)
+    shell_cmd(
+      "./",
+      "gem install #{gem_name}",
+      "install gem #{gem_name}"
+    )
   end
 
   def installVagrantPlugin(pluginName)
     system "vagrant --version"
-    puts "vagrant plugin install [ #{pluginName} ]"
-    if system "vagrant plugin install #{pluginName}"
-      puts "-> Installed vagrant plugin #{pluginName}...\n\n"
-    else
-      raise "\n!!!\n   Error trying to vagrant plugin install #{pluginName}\n!!!\n\n"
+
+    shell_cmd(
+      "./",
+      "vagrant plugin install #{pluginName}",
+      "install vagrant plugin #{pluginName}"
+    )
+  end
+
+  def installUtils
+    Dir.mkdir(HOME_UTILS) unless Dir.exists?(HOME_UTILS)
+
+    UTILS.each do |util|
+      util_home = "#{HOME_UTILS}/#{util.name}"
+
+      if !Dir.exists?("#{HOME_UTILS}/#{util.name}")
+        Dir.mkdir("#{HOME_UTILS}/#{util.name}")
+      else
+        puts "Deleting existing utility #{util.name}..."
+        FileUtils.rm_rf File.join(HOME_UTILS, util.name)
+      end
+
+      puts "Preparing to download utility #{util.name}"
+      clone(util.name, util.url, HOME_UTILS)
+
+      shell_cmd(
+        util_home,
+        "git checkout --quiet tags/#{util.tag}",
+        "check out tag #{util.tag}"
+      )
+
+      if( util.postinstall.length > 0)
+        shell_cmd(
+          util_home,
+          "bundle install && rake install",
+          "install util #{util.name}"
+        )
+      end
+
     end
   end
 
-  desc "Install gems for Holobot"
-  task :gems do
-    #puts "Installing gems for Holobot..."
-    puts "!USE Gemfile instead!!!"
-    puts "run:"
-    puts "    bundle install"
-    #BASE_GEM_INSTALL_LIST.each{ |gemName| installGem(gemName) }
+  desc "Install utils for Holobot"
+  task :utils do
+    installUtils()
   end
 
   desc "Install deps for Holobot"
   task :deps do
+    shell_cmd(
+      HOME,
+      "bundle install",
+      "install gems for Holobot"
+    )
+
     BASE_VAGRANT_PLUGINS.each{ |plugin| installVagrantPlugin(plugin) }
   end
 
   desc "Full auto install."
   task :auto do
+    # Cleanup
     Rake::Task["clobber"].invoke
     Rake::Task["baseboxes:download"].invoke
+
+    # Gather resources
     Rake::Task["cookbooks:clone"].invoke
-    Rake::Task["install:deps"].invoke
     Rake::Task["thirdparty:clone"].invoke
 
+    # Install dependencies
+    Rake::Task["install:deps"].invoke
+    Rake::Task["install:utils"].invoke
+    
     puts "\nFull auto install complete!"
   end
 end
