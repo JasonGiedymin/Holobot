@@ -31,6 +31,7 @@ VAGRANT_CMDS = [
   VagrantCommand.new('halt', 'Stop vm', 'halt'),
   VagrantCommand.new('destroy', 'Destroy and cleanup vm', 'destroy --force'),
   VagrantCommand.new('ssh', 'SSH onto vm', 'ssh'),
+  VagrantCommand.new('provision', 'Provision vm', 'provision'),
 ]
 
 # -----------------------------METHODS------------------------------------------
