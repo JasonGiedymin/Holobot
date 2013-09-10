@@ -9,7 +9,7 @@ HOME_NFS_MOUNT = "#{HOME_SCRIPTS}/nfs_mount"
 upgrade = <<SCRIPT
 echo Running apt-get update and upgrade...
 sudo apt-get update -y
-sudo apt-get upgrade -y
+#sudo apt-get upgrade -y
 SCRIPT
 
 installs = <<SCRIPT
