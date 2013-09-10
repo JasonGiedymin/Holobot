@@ -15,7 +15,7 @@ The quickstart is divided into three parts.
 
     # Install RVM (Ruby Version Manager)
     # Install the latest 1.9.x or 2.0.x branch
-    rvm use [the latest 1.9.x or 2.0.x branch]
+    rvm use --default ruby-1.9.3-p327
 
 
 ### Execute the following
@@ -29,9 +29,19 @@ The quickstart is divided into three parts.
     [alias]
     rms = "!f(){ git rm --cached \"$1\";rm -r \"$1\";git config -f .gitmodules --remove-section \"submodule.$1\";git config -f .git/config --remove-section \"submodule.$1\";git add .gitmodules; }; f"
 
-###
+
+### Dependencies
+
+Execute the following to install only dependencies
+
+    rake install:deps
+
+Execute the following to do a full install (which does the above implicitly)
+
+    rake install:auto
 
 Next see the wiki [Getting Started](https://github.com/JasonGiedymin/Holobot/wiki/gettingstarted)
+
 
 ## HoloBot Parts
 1. apps

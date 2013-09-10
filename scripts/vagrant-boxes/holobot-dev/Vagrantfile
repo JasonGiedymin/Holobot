@@ -99,7 +99,7 @@ end
 
 def mounts(config, props)
   # NFS Mount
-  # config.vm.synced_folder "#{HOME_NFS_MOUNT}", "/home/core/share", :nfs => true #requires root privs
+  # config.vm.synced_folder "#{HOME_NFS_MOUNT}", "/usr/share/oem/vagrant", id: "vagrant-root", :nfs => true # requires root privs
 end
 
 def hypervisor_settings(config, props)

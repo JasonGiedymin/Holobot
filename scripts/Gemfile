@@ -2,5 +2,4 @@
 source "https://rubygems.org"
 
 gem 'berkshelf'
-gem 'veewee'
-
+# gem 'veewee' # looks to have a dependency issue?

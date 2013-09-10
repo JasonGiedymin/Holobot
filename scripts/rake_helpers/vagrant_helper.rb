@@ -35,6 +35,8 @@ VAGRANT_CMDS = [
 
 # -----------------------------METHODS------------------------------------------
 
+
+
 def chdir(dir)
   Dir.chdir("#{dir}")
 end
@@ -50,9 +52,8 @@ def vm_cmd(os, cmd)
         raise "\n!!!\n   Error trying to run vagrant command [#{vagrant_cmd}]\n!!!\n\n"
     end
   elsif
-    #puts "-> Vagrant command ran: [#{vagrant_cmd}]\n\n"
     system vagrant_cmd
-  end # end weak
+  end # end strict
 end # end vm_cmd
 
 def say(word)
@@ -63,12 +64,13 @@ end
 namespace :baseboxes do
   def curl(name, url)
     puts "Downloading base box [ #{name} via #{url} ]"
-    Dir.mkdir("#{HOME_BASE_BOX}") unless Dir.exists?("#{HOME_BASE_BOX}")
-    if system "curl #{url} > #{HOME_BASE_BOX}/#{name}.box"
-      puts "-> Base box #{name} downloaded to [#{HOME_BASE_BOX}/#{name}.box].\n\n"
-    else
-      raise "\n!!!\n   Error downloading base box: #{url}\n!!!\n\n"
-    end
+    Dir.mkdir(HOME_BASE_BOX) unless Dir.exists?(HOME_BASE_BOX)
+
+    shell_cmd(
+      "./",
+      "curl #{url} > #{HOME_BASE_BOX}/#{name}.box",
+      "Download base box #{name} to [#{HOME_BASE_BOX}/#{name}.box]"
+    )
   end
 
   desc "Update base boxes"
