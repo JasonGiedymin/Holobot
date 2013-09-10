@@ -128,7 +128,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "ubuntu", primary: true do |ubuntu|
     # config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'
-    ubuntu.vm.box_url = "#{HOME_BASE_BOX}/raring-server-cloudimg-amd64-vagrant-disk1.box"
+    ubuntu.vm.box_url = "#{HOME_BASE_BOX}/ubuntu_12_04_lts.box"
     # In a purely functional lang I would curry and compose the below. Ruby?
     hypervisor_settings(ubuntu, props)
     network(ubuntu, props)
