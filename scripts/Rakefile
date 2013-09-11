@@ -71,7 +71,9 @@ THIRD_PARTY = {
 
 Utility = Struct.new(:name, :url, :tag, :postinstall)
 UTILS = [
-  Utility.new('vagrant', 'https://github.com/mitchellh/vagrant.git', 'v1.3.1', 'rake install')
+  # Disabled tracking vagrant for now, make sure to stick with v1.2.7
+  # you may have to do gem uninstall vagrant
+  # Utility.new('vagrant', 'https://github.com/mitchellh/vagrant.git', 'v1.2.7', 'gem uninstall -a vagrant && rake install')
 ]
 
 
@@ -161,7 +163,7 @@ namespace :install do
 
     shell_cmd(
       "./",
-      "vagrant plugin install #{pluginName}",
+      "vagrant plugin uninstall #{pluginName} && vagrant plugin install #{pluginName}",
       "install vagrant plugin #{pluginName}"
     )
   end

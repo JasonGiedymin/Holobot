@@ -98,8 +98,9 @@ def network(config, props)
 end
 
 def mounts(config, props)
-  # NFS Mount
-   config.vm.synced_folder "#{HOME_NFS_MOUNT}", "/mnt/holobot-nfs", id: "vagrant-root", :nfs => true # requires root privs
+  # NFS Mount 
+  # disabled
+  config.vm.synced_folder "#{HOME_NFS_MOUNT}", "/mnt/holobot-nfs", id: "vagrant-root", :nfs => true # requires root privs
 end
 
 def hypervisor_settings(config, props)

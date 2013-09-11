@@ -114,4 +114,10 @@ namespace :vm do
     end # end default vm task
   end # end default command each
 
+  desc 'Rebirth does a force destroy followed by an up'
+  task :Rebirth do
+    Rake::Task["vm:destroy"].invoke
+    Rake::Task["vm:up"].invoke
+  end
+
 end # end vm

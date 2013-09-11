@@ -17,6 +17,12 @@ The quickstart is divided into three parts.
     # Install the latest 1.9.x or 2.0.x branch
     rvm use --default ruby-1.9.3-p327
 
+    # If ever you get into gem dependency issues
+    # go ahead and delete the ruby version entirely
+    # and re-install
+    rvm uninstall ruby-1.9.3-p327
+    rvm install --default ruby-1.9.3-p327
+
 
 ### Execute the following
 
