@@ -144,6 +144,11 @@ end
 
 
 namespace :thirdparty do
+  desc "Remove existing third-party downloads"
+  task :clean do
+    FileUtils.rm_rf("#{HOME_THIRDPARTY}")
+  end
+
   desc "Clone third-party software (docker, etc...)"
   task :clone do
     THIRD_PARTY.each_pair do |name, url|
@@ -152,6 +157,19 @@ namespace :thirdparty do
   end
 end
 
+namespace :etcd do
+
+  desc "Gets latest etcd source to compile and package"
+  task :package do
+    Rake::Task["thirdparty:clean"].invoke
+    Rake::Task["thirdparty:clone"].invoke
+    shell_cmd(
+      "./",
+      "cd #{HOME_THIRDPARTY}/etcd && ./build && tar -cvjf etcd-holobot.tar.gz etcd",
+      "compile etcd"
+    )
+  end
+end
 
 # Install namespace for setting up base environment
 namespace :install do
