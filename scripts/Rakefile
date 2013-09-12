@@ -155,9 +155,6 @@ namespace :thirdparty do
       clone(name, url, HOME_THIRDPARTY)
     end
   end
-end
-
-namespace :etcd do
 
   desc "Gets latest etcd source to compile and package"
   task :package do
@@ -170,6 +167,7 @@ namespace :etcd do
     )
   end
 end
+
 
 # Install namespace for setting up base environment
 namespace :install do
