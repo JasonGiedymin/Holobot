@@ -59,6 +59,10 @@ BASE_BOX_URLS = {
     'track' => false, # if already exists, skips
     'url' => 'http://files.vagrantup.com/precise64.box'
   },
+  :ubuntu_13_04_lts => {
+    'track' => false, # if already exists, skips
+    'url' => 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'
+  },
   :coreos_production_vagrant => {
     'track' => true, # will track meaning always download
     'url' => 'http://storage.core-os.net/coreos/amd64-generic/dev-channel/coreos_production_vagrant.box'
