@@ -70,7 +70,8 @@ BASE_BOX_URLS = {
 }
 
 THIRD_PARTY = {
-  "docker" => "https://github.com/dotcloud/docker.git"
+  "docker" => "https://github.com/dotcloud/docker.git",
+  "etcd" => "https://github.com/coreos/etcd.git"
 }
 
 Utility = Struct.new(:name, :url, :tag, :postinstall)
