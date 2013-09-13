@@ -1,0 +1,6 @@
+description "etcd service registry"
+
+start on started
+stop on shutdown
+
+exec /usr/local/bin/etcd  -c 0.0.0.0:4001 -s 0.0.0.0:7001 -sl 0.0.0.0 -cl 0.0.0.0 -d /var/cache/etcd/state -n vagrant-ubuntu-raring-64

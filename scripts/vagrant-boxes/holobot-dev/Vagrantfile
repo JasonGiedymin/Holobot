@@ -6,6 +6,8 @@ HOME_SCRIPTS = "#{HOME}/../../../scripts" # make it explicit we are in scripts
 HOME_BASE_BOX = "#{HOME}/../base-boxes"
 HOME_NFS_MOUNT = "#{HOME_SCRIPTS}/nfs_mount"
 
+REMOTE_NFS_MOUNT = '/mnt/holobot-nfs'
+
 upgrade = <<SCRIPT
 echo Running apt-get update and upgrade...
 sudo apt-get update -y
@@ -13,6 +15,7 @@ sudo apt-get update -y
 SCRIPT
 
 installs = <<SCRIPT
+echo "Installing basic tools via apt-get"
 sudo apt-get install -y vim git
 SCRIPT
 
@@ -21,22 +24,49 @@ echo "Cleaning up apt-get cache..."
 sudo apt-get clean
 SCRIPT
 
+etcd_binary_linux = 'etcd-holobot-linux.tar.bz2'
+replace_etcd_ubuntu = <<SCRIPT
+echo "Compiling etcd for linux and saving to nfs mount..."
+# First compile etcd for linux and then package it for future use
+cd #{REMOTE_NFS_MOUNT}/etcd/etcd && ./build && tar -cvjf #{REMOTE_NFS_MOUNT}/etcd/#{etcd_binary_linux} etcd
+
+# Stopping and remove cache
+echo "Stopping etcd..."
+
+echo "Removing etcd cache..."
+sudo rm -R /var/cache/etcd
+
+# Copy files necessary to make etcd work
+echo "Unpacking and moving etcd binary"
+sudo tar -xvf #{REMOTE_NFS_MOUNT}/etcd/#{etcd_binary_linux} -C /usr/local/bin
+
+echo "Copying custom config file"
+sudo cp #{REMOTE_NFS_MOUNT}/etcd/etcd.conf /etc/init/etcd.conf
+
+echo "Restarting etcd..."
+sudo service etcd start
+SCRIPT
+
 props = {
   :appname =>'Holobot-dev-v2.3',
   :scripts => {
     :upgrade => upgrade,
     :installs => installs,
-    :cleanup => cleanup
+    :cleanup => cleanup,
+    :replace_etcd_ubuntu => replace_etcd_ubuntu
   }, # end scripts
   :chef => {
     :json => { 
       # Override default attributes here.
-      "scala" => {
-        "version" => "2.10.2",
-        "url" => "http://www.scala-lang.org/files/archive/scala-2.10.2.tgz"
+      'scala' => {
+        'version' => '2.10.2',
+        'url' => "http://www.scala-lang.org/files/archive/scala-2.10.2.tgz"
       },
-      "etcd" => {
-        "version" => "0.1.1"
+      'go' => {
+        'version' => '1.1.2'
+      },
+      'etcd' => {
+        'version' => '0.1.1'
       }
     } # end json
   } # end chef
@@ -103,7 +133,7 @@ end
 def mounts(config, props)
   # NFS Mount 
   # disabled
-  config.vm.synced_folder "#{HOME_NFS_MOUNT}", "/mnt/holobot-nfs", id: "vagrant-root", :nfs => true # requires root privs
+  config.vm.synced_folder HOME_NFS_MOUNT, REMOTE_NFS_MOUNT, id: "vagrant-root", :nfs => true # requires root privs
 end
 
 def hypervisor_settings(config, props)
@@ -139,6 +169,10 @@ Vagrant.configure("2") do |config|
     mounts(ubuntu, props)
     prepare(ubuntu, props)
     runChef(ubuntu, props)
+
+    # replace etcd, only needed if etcd version is NOT up to date
+    # ubuntu.vm.provision :shell, inline: props[:scripts][:replace_etcd_ubuntu]
+
     cleanup(ubuntu, props)
     finishMessage(ubuntu, props)
   end

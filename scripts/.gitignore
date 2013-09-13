@@ -2,3 +2,4 @@ berkshelf/
 cookbooks/
 thirdparty/
 utils/
+nfs_mount/etcd

@@ -23,7 +23,9 @@ Dir.chdir(File.expand_path("../", __FILE__))
 
 ## consts
 HOME = File.dirname(__FILE__)
+HOME_APPS = "#{HOME}/../apps/"
 HOME_UTILS = "#{HOME}/utils"
+HOME_NFS = "#{HOME}/nfs_mount"
 HOME_COOKBOOKS = "#{HOME}/cookbooks"
 HOME_BERKSHELF = "#{HOME}/berkshelf"
 HOME_THIRDPARTY = "#{HOME}/thirdparty"
@@ -33,6 +35,7 @@ HOME_VAGRANT_BOX = "#{HOME}/vagrant-boxes/holobot-dev"
 CLEAN = FileList[
   "#{HOME_UTILS}/*",
   "#{HOME_COOKBOOKS}/*",
+  "#{HOME_NFS}/etcd",
   "./Berksfile",
   "./Berksfile.lock",
   "./berkshelf",
@@ -71,7 +74,7 @@ BASE_BOX_URLS = {
 
 THIRD_PARTY = {
   "docker" => "https://github.com/dotcloud/docker.git",
-  "etcd" => "https://github.com/coreos/etcd.git"
+  "etcd/etcd" => "https://github.com/coreos/etcd.git"
 }
 
 Utility = Struct.new(:name, :url, :tag, :postinstall)
@@ -87,6 +90,33 @@ task :default do
   Rake::Task["help:examples"].invoke
 end
 
+
+def package_etcd
+  nfs_target_etcd = "#{HOME_NFS}/etcd"
+  FileUtils.rm_rf(nfs_target_etcd)
+  Dir.mkdir(nfs_target_etcd)
+
+  etcd_binary_darwin = 'etcd-holobot-darwin.tar.bz2'
+  shell_cmd(
+    "./",
+    "cd #{HOME_THIRDPARTY}/etcd/etcd && ./build && tar -cvjf #{etcd_binary_darwin} etcd && mv #{etcd_binary_darwin} #{HOME_NFS}/etcd/",
+    "compile etcd"
+  )
+
+  # defer linux to the vm for compilation, just copy etcd to nfs
+  shell_cmd(
+    "./",
+    "cp -R #{HOME_THIRDPARTY}/etcd #{HOME_NFS}",
+    "copying etcd for linux compilation later"
+  )
+
+  # copy conf file for linux
+  shell_cmd(
+    "./",
+    "cp -R #{HOME_APPS}/ubuntu/etcd/* #{HOME_NFS}/etcd/",
+    "copying etcd.conf for use by linux"
+  )
+end
 
 # Base namespace
 namespace :cookbooks do
@@ -160,11 +190,8 @@ namespace :thirdparty do
   task :package do
     Rake::Task["thirdparty:clean"].invoke
     Rake::Task["thirdparty:clone"].invoke
-    shell_cmd(
-      "./",
-      "cd #{HOME_THIRDPARTY}/etcd && ./build && tar -cvjf etcd-holobot.tar.gz etcd",
-      "compile etcd"
-    )
+
+    package_etcd()
   end
 end
 
