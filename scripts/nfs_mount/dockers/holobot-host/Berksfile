@@ -1,0 +1,7 @@
+site :opscode
+
+cookbook 'build-essential'
+cookbook 'apache2'
+cookbook 'git'
+cookbook 'chef-kibana', git: 'git://github.com/opscode-cookbooks/lusis/chef-kibana'
+cookbook 'nginx' , github: 'opscode-cookbooks/nginx'
