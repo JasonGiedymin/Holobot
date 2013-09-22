@@ -18,7 +18,7 @@ SCRIPT
 
 installs = <<SCRIPT
 echo "Installing basic tools via apt-get"
-sudo apt-get install -y vim git
+sudo apt-get install -y libssl-dev
 SCRIPT
 
 cleanup = <<SCRIPT
@@ -69,7 +69,21 @@ props = {
       },
       'etcd' => {
         'version' => '0.1.1'
+      },
+      'nodejs' => {
+        'version' => '0.10.18',
       }
+      # 'nvm' => {
+      #   'user' => 'vagrant',
+      #   'nodes' => [
+      #     'version' => '0.10.18',
+      #     'alias' => 'default',
+      #     'modules' => [
+      #       { 'name' => 'grunt-cli'},
+      #       { 'name' => 'httpster'},
+      #     ]
+      #   ]
+      # }
     } # end json
   } # end chef
 } # end props
@@ -102,14 +116,22 @@ def runChef(config, props)
 
     chef.json = props[:chef][:json]
 
+    # os
+    chef.add_recipe "apt" # make sure this is always first!!!
+    chef.add_recipe "build-essential" # make sure this is always second!!!
+       
+    # simple
+    chef.add_recipe "python"
+    chef.add_recipe "golang"
+    chef.add_recipe "nodejs"
+    
+    # finally end with installs resulting in systemic changes
     chef.add_recipe "docker"
     chef.add_recipe "etcd"
-    chef.add_recipe "golang"
+
+    # long running
     chef.add_recipe "java"
-    # chef.add_recipe "nodejs"
-    chef.add_recipe "nvm"
-    chef.add_recipe "python"
-    chef.add_recipe "scala"
+    # chef.add_recipe "scala"
   end
 
   # config.berkshelf.enabled = true
