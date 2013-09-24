@@ -7,6 +7,7 @@
 require 'rake/clean'
 import 'rake_helpers/system_helper.rb'
 import 'rake_helpers/git_helper.rb'
+import 'rake_helpers/versions_helper.rb'
 import 'rake_helpers/vagrant_helper.rb'
 
 
@@ -30,6 +31,7 @@ HOME_COOKBOOKS = "#{HOME}/cookbooks"
 HOME_BERKSHELF = "#{HOME}/berkshelf"
 HOME_THIRDPARTY = "#{HOME}/thirdparty"
 HOME_BASE_BOX = "#{HOME}/vagrant-boxes/base-boxes"
+HOME_VAGRANT_PRIV = "#{HOME}/vagrant-boxes/holobot-dev/.vagrant"
 HOME_VAGRANT_BOX = "#{HOME}/vagrant-boxes/holobot-dev"
 
 CLEAN = FileList[
@@ -67,7 +69,7 @@ BASE_BOX_URLS = {
     'url' => 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'
   },
   :coreos_production_vagrant => {
-    'track' => true, # will track meaning always download
+    'track' => false, # will track meaning always download
     'url' => 'http://storage.core-os.net/coreos/amd64-generic/dev-channel/coreos_production_vagrant.box'
   }
 }
@@ -270,6 +272,11 @@ namespace :install do
   task :auto do
     # Cleanup
     Rake::Task["clobber"].invoke
+    
+    puts "Making sure VMs are DOWN prior to total cleanup which includes the .vagrant dir..."
+    FileUtils.rm_rf("#{HOME_VAGRANT_PRIV}")
+    Rake::Task["vm:destroy"].invoke
+
     Rake::Task["baseboxes:download"].invoke
 
     # Gather resources

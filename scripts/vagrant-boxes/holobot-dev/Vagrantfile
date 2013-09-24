@@ -5,6 +5,9 @@ HOME = File.dirname(__FILE__)
 HOME_SCRIPTS = "#{HOME}/../../../scripts" # make it explicit we are in scripts
 HOME_BASE_BOX = "#{HOME}/../base-boxes"
 HOME_NFS_MOUNT = "#{HOME_SCRIPTS}/nfs_mount"
+HOME_RAKE_HELPERS = "#{HOME_SCRIPTS}/rake_helpers"
+
+require "#{HOME_RAKE_HELPERS}/versions_helper.rb"
 
 REMOTE_NFS_MOUNT = '/mnt/holobot-nfs'
 
@@ -131,7 +134,7 @@ def runChef(config, props)
 
     # long running
     chef.add_recipe "java"
-    # chef.add_recipe "scala"
+    chef.add_recipe "scala"
   end
 
   # config.berkshelf.enabled = true

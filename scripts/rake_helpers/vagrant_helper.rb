@@ -9,6 +9,7 @@
 
 # -----------------------------CONST--------------------------------------------
 
+
 SUPPORTED_OS=[
   'ubuntu',
   'coreos'
@@ -31,7 +32,7 @@ VAGRANT_CMDS = [
   VagrantCommand.new('halt', 'Stop vm', 'halt'),
   VagrantCommand.new('destroy', 'Destroy and cleanup vm', 'destroy --force'),
   VagrantCommand.new('ssh', 'SSH onto vm', 'ssh'),
-  VagrantCommand.new('provision', 'Provision vm', 'provision'),
+  VagrantCommand.new('provision', 'Provision vm', 'provision')
 ]
 
 # -----------------------------METHODS------------------------------------------
@@ -114,9 +115,17 @@ namespace :vm do
     end # end default vm task
   end # end default command each
 
+
+  desc 'Cleanup up the vagrant dir'
+  task :cleanup do
+    Rake::Task["vm:destroy"].invoke
+    vm_cmd('virtualbox', "box remove #{HOLOBOT_VERSION}-#{DEFAULT_OS}")
+  end
+  
   desc 'Rebirth does a force destroy followed by an up'
   task :rebirth do
     Rake::Task["vm:destroy"].invoke
+    Rake::Task["vm:cleanup"].invoke
     Rake::Task["vm:up"].invoke
   end
 
