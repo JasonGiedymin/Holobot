@@ -1,0 +1,231 @@
+## Vagrantfile
+
+# -----------------------------CONST--------------------------------------------
+HOME = File.dirname(__FILE__)
+HOME_SCRIPTS = "#{HOME}/../../../scripts" # make it explicit we are in scripts
+HOME_BASE_BOX = "#{HOME}/../base-boxes"
+HOME_NFS_MOUNT = "#{HOME_SCRIPTS}/nfs_mount"
+
+REMOTE_NFS_MOUNT = '/mnt/holobot-nfs'
+
+COMPILE_CUSTOM_ETCD = false
+
+upgrade = <<SCRIPT
+echo Running apt-get update and upgrade...
+sudo apt-get update -y
+#sudo apt-get upgrade -y
+SCRIPT
+
+installs = <<SCRIPT
+echo "Installing basic tools via apt-get"
+sudo apt-get install -y libssl-dev
+SCRIPT
+
+cleanup = <<SCRIPT
+echo "Cleaning up apt-get cache..."
+sudo apt-get clean
+SCRIPT
+
+strider = <<SCRIPT
+echo "Installing strider via Docker..."
+sudo docker pull strider/strider
+sudo docker run -d -p 3000:3000 strider/strider
+SCRIPT
+
+etcd_binary_linux = 'etcd-holobot-linux.tar.bz2'
+replace_etcd_ubuntu = <<SCRIPT
+echo "Compiling etcd for linux and saving to nfs mount..."
+# First compile etcd for linux and then package it for future use
+cd #{REMOTE_NFS_MOUNT}/etcd/etcd && ./build && tar -cvjf #{REMOTE_NFS_MOUNT}/etcd/#{etcd_binary_linux} etcd
+
+# Stopping and remove cache
+echo "Stopping etcd..."
+
+echo "Removing etcd cache..."
+sudo rm -R /var/cache/etcd
+
+# Copy files necessary to make etcd work
+echo "Unpacking and moving etcd binary"
+sudo tar -xvf #{REMOTE_NFS_MOUNT}/etcd/#{etcd_binary_linux} -C /usr/local/bin
+
+echo "Copying custom config file"
+sudo cp #{REMOTE_NFS_MOUNT}/etcd/etcd.conf /etc/init/etcd.conf
+
+echo "Restarting etcd..."
+sudo service etcd start
+SCRIPT
+
+props = {
+  :appname =>'Holobot-strider-v1.0',
+  :scripts => {
+    :upgrade => upgrade,
+    :installs => installs,
+    :cleanup => cleanup,
+    :strider => strider,
+    :replace_etcd_ubuntu => replace_etcd_ubuntu
+  }, # end scripts
+  :chef => {
+    :json => { 
+      # Override default attributes here.
+      'scala' => {
+        'version' => '2.10.2',
+        'url' => "http://www.scala-lang.org/files/archive/scala-2.10.2.tgz"
+      },
+      'go' => {
+        'version' => '1.1.2'
+      },
+      'etcd' => {
+        'version' => '0.1.1'
+      },
+      'nodejs' => {
+        'version' => '0.10.18',
+      }
+      # 'nvm' => {
+      #   'user' => 'vagrant',
+      #   'nodes' => [
+      #     'version' => '0.10.18',
+      #     'alias' => 'default',
+      #     'modules' => [
+      #       { 'name' => 'grunt-cli'},
+      #       { 'name' => 'httpster'},
+      #     ]
+      #   ]
+      # }
+    } # end json
+  } # end chef
+} # end props
+
+
+#------------------------------METHODS------------------------------------------
+
+def prepare(config, props)
+  # installs
+  config.vm.provision :shell, inline: props[:scripts][:upgrade]
+  config.vm.provision :shell, inline: props[:scripts][:installs]
+end
+
+def finishMessage(config, props)
+  config.vm.provision :shell, inline: "echo '#{props[:appname]} started...'"
+end
+
+def strider(config, props)
+  # installs
+  config.vm.provision :shell, inline: props[:scripts][:strider]
+end
+  
+def runChef(config, props)
+  # chef
+  config.omnibus.chef_version = :latest #Define omnibus client to utilize
+
+  config.vm.provision "chef_solo" do |chef|
+    chef.log_level = :debug
+    chef.cookbooks_path = [
+      "#{HOME_SCRIPTS}/berkshelf", 
+      "#{HOME_SCRIPTS}/cookbooks"
+    ]
+
+    # chef.data_bags_path = "#{HOME_SCRIPTS}/data_bags"
+
+    chef.json = props[:chef][:json]
+
+    # os
+    chef.add_recipe "apt" # make sure this is always first!!!
+    chef.add_recipe "build-essential" # make sure this is always second!!!
+       
+    # simple
+    chef.add_recipe "python"
+    chef.add_recipe "golang"
+    chef.add_recipe "nodejs"
+    
+    # finally end with installs resulting in systemic changes
+    chef.add_recipe "docker"
+    chef.add_recipe "etcd"
+
+    # long running
+    chef.add_recipe "java"
+    # chef.add_recipe "scala"
+  end
+
+  # config.berkshelf.enabled = true
+end
+
+def cleanup(config, props)
+  config.vm.provision :shell, inline: props[:scripts][:cleanup]
+end
+
+def network(config, props)
+  # Network
+  config.vm.network :private_network, ip: "10.10.10.10"#, :adapter => 2 # assigned to adapter 2 by default
+  
+  # the main card configuration
+  config.vm.network :public_network, :bridge => 'en0: Wi-Fi (AirPort)', :mac => '0800d2FF88F2'#, :adapter => 3
+  
+  #config.ssh.username = 'core'
+  #config.ssh.forward_agent = true
+  #config.ssh.timeout = 500
+  #config.ssh.max_tries = 40
+end
+
+def mounts(config, props)
+  # NFS Mount 
+  # disabled
+  config.vm.synced_folder HOME_NFS_MOUNT, REMOTE_NFS_MOUNT, id: "vagrant-root", :nfs => true # requires root privs
+end
+
+def hypervisor_settings(config, props)
+  # Vbox specific configs, should think about removing these
+  config.vm.provider :virtualbox do |vb|
+   vb.customize ["modifyvm", :id, "--hwvirtex", "on"] #in case it is needed
+   vb.customize ["modifyvm", :id, "--pae", "on"] #in case it is needed
+   vb.customize ["modifyvm", :id, "--memory", "1024"] #min ram to build box
+   vb.customize ["modifyvm", :id, "--cpus", "1"] #making sure cpus are accounted at min
+   # vb.gui = true #just in case
+  end
+end
+
+
+#------------------------------MAIN---------------------------------------------
+
+# Plugins
+#Vagrant.require_plugin 'vagrant-vbguest'
+#Vagrant.require_plugin 'vagrant-berkshelf'
+#Vagrant.require_plugin 'vagrant-omnibus'
+
+Vagrant.configure("2") do |config|
+
+  config.vm.define "ubuntu", primary: true do |ubuntu|
+    # Base setup
+    ubuntu.vm.box = "#{props[:appname]}-ubuntu"
+
+    # config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'
+    ubuntu.vm.box_url = "#{HOME_BASE_BOX}/ubuntu_13_04_lts.box"
+    # In a purely functional lang I would curry and compose the below. Ruby?
+    hypervisor_settings(ubuntu, props)
+    network(ubuntu, props)
+    mounts(ubuntu, props)
+    prepare(ubuntu, props)
+    runChef(ubuntu, props)
+
+    # replace etcd, only needed if etcd version is NOT up to date
+    if (COMPILE_CUSTOM_ETCD)
+      ubuntu.vm.provision :shell, inline: props[:scripts][:replace_etcd_ubuntu]
+    end
+
+    cleanup(ubuntu, props)
+    strider(ubuntu, props)
+    finishMessage(ubuntu, props)
+  end
+
+  config.vm.define "coreos" do |coreos|
+    # Base setup
+    coreos.vm.box = "#{props[:appname]}-coreos"
+
+    coreos.vm.box_url = "#{HOME_BASE_BOX}/coreos_production_vagrant.box"
+    hypervisor_settings(coreos, props)
+    network(coreos, props)
+    mounts(coreos, props)
+    # runChef(coreos, props)
+    # cleanup(coreos, props)
+    finishMessage(coreos, props)
+  #end
+end
