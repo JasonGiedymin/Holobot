@@ -74,4 +74,5 @@ conf/application.conf
 conf/auth.conf
 
 ## Vagrant
+.vagrant/*
 vagrant-boxes/base-boxes
