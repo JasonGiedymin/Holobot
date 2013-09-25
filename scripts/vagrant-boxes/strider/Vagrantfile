@@ -227,5 +227,5 @@ Vagrant.configure("2") do |config|
     # runChef(coreos, props)
     # cleanup(coreos, props)
     finishMessage(coreos, props)
-  #end
+  end
 end
