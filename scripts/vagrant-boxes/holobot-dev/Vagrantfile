@@ -29,6 +29,11 @@ echo "Cleaning up apt-get cache..."
 sudo apt-get clean
 SCRIPT
 
+restartNetworking = <<SCRIPT
+echo "Restarting networking"
+sudo ifdown -a && sudo ifup -a
+SCRIPT
+
 etcd_binary_linux = 'etcd-holobot-linux.tar.bz2'
 replace_etcd_ubuntu = <<SCRIPT
 echo "Compiling etcd for linux and saving to nfs mount..."
@@ -58,6 +63,7 @@ props = {
     :upgrade => upgrade,
     :installs => installs,
     :cleanup => cleanup,
+    :restartNetworking => restartNetworking,
     :replace_etcd_ubuntu => replace_etcd_ubuntu
   }, # end scripts
   :chef => {
@@ -96,6 +102,7 @@ props = {
 
 def prepare(config, props)
   # installs
+  config.vm.provision :shell, inline: props[:scripts][:restartNetworking]
   config.vm.provision :shell, inline: props[:scripts][:upgrade]
   config.vm.provision :shell, inline: props[:scripts][:installs]
 end
