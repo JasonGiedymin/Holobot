@@ -1,1 +1,1 @@
-HOLOBOT_VERSION = 'Holobot-dev-v2.3'
+HOLOBOT_VERSION = 'Holobot-dev-v3.0.0-RC2'
