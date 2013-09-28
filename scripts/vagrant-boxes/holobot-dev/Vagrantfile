@@ -34,6 +34,12 @@ echo "Restarting networking"
 sudo ifdown -a && sudo ifup -a
 SCRIPT
 
+strider = <<SCRIPT
+echo "Installing strider via Docker..."
+sudo docker pull strider/strider
+sudo docker run -d -p 3000:3000 strider/strider
+SCRIPT
+
 etcd_binary_linux = 'etcd-holobot-linux.tar.bz2'
 replace_etcd_ubuntu = <<SCRIPT
 echo "Compiling etcd for linux and saving to nfs mount..."
@@ -64,6 +70,7 @@ props = {
     :installs => installs,
     :cleanup => cleanup,
     :restartNetworking => restartNetworking,
+    :strider => strider,
     :replace_etcd_ubuntu => replace_etcd_ubuntu
   }, # end scripts
   :chef => {
@@ -109,6 +116,11 @@ end
 
 def finishMessage(config, props)
   config.vm.provision :shell, inline: "echo '#{props[:appname]} started...'"
+end
+
+def strider(config, props)
+  # installs
+  config.vm.provision :shell, inline: props[:scripts][:strider]
 end
   
 def runChef(config, props)
@@ -224,5 +236,28 @@ Vagrant.configure("2") do |config|
     # runChef(coreos, props)
     # cleanup(coreos, props)
     finishMessage(coreos, props)
+  end
+
+  config.vm.define "strider", primary: true do |ubuntu|
+    # Base setup
+    ubuntu.vm.box = "#{props[:appname]}-strider-ubuntu"
+
+    # config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'
+    ubuntu.vm.box_url = "#{HOME_BASE_BOX}/ubuntu_13_04_lts.box"
+    # In a purely functional lang I would curry and compose the below. Ruby?
+    hypervisor_settings(ubuntu, props)
+    network(ubuntu, props)
+    mounts(ubuntu, props)
+    prepare(ubuntu, props)
+    runChef(ubuntu, props)
+
+    # replace etcd, only needed if etcd version is NOT up to date
+    if (COMPILE_CUSTOM_ETCD)
+      ubuntu.vm.provision :shell, inline: props[:scripts][:replace_etcd_ubuntu]
+    end
+
+    cleanup(ubuntu, props)
+    strider(ubuntu, props)
+    finishMessage(ubuntu, props)
   end
 end
