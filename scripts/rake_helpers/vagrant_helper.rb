@@ -12,7 +12,8 @@
 
 SUPPORTED_OS=[
   'ubuntu',
-  'coreos'
+  'coreos',
+  'strider'
 ]
 
 # We also define a primary in the multi machine Vagrantfile.
