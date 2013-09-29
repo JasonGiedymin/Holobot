@@ -64,7 +64,7 @@ sudo service etcd start
 SCRIPT
 
 props = {
-  :appname =>'Holobot-dev-v2.3',
+  :appname => HOLOBOT_VERSION,
   :scripts => {
     :upgrade => upgrade,
     :installs => installs,
