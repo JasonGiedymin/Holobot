@@ -58,6 +58,9 @@ Next see the wiki [Getting Started](https://github.com/JasonGiedymin/Holobot/wik
   - base-boxes - all the base boxes which we base off or create
   - holobot-dev - Vagrant box spec via Vagrantfile
 
-We use vagrant to spin up VMs which host Holobot, a distributed docker management
-plane built on CoreOS.
+We use vagrant to spin up VMs which host Holobot, a distributed docker management plane built on CoreOS.
+
+
+## Hooks
+1. Trello is tied to the repo for quick push/pull/merged list visability.
 
