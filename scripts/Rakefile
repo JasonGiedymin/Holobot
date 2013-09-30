@@ -7,10 +7,10 @@
 require 'rake/clean'
 require 'net/http'
 
-import 'rake_helpers/system_helper.rb'
-import 'rake_helpers/git_helper.rb'
-import 'rake_helpers/versions_helper.rb'
-import 'rake_helpers/vagrant_helper.rb'
+# import 'lib/conf.rb'
+import 'lib/system.rb'
+import 'lib/git.rb'
+import 'lib/vagrant.rb'
 
 
 # Immediately sync all stdout so that tools like buildbot can
@@ -32,6 +32,8 @@ HOME_NFS = "#{HOME}/nfs_mount"
 HOME_COOKBOOKS = "#{HOME}/cookbooks"
 HOME_BERKSHELF = "#{HOME}/berkshelf"
 HOME_THIRDPARTY = "#{HOME}/thirdparty"
+HOME_CONF = "#{HOME}/conf"
+HOME_LIB = "#{HOME}/lib"
 HOME_BASE_BOX = "#{HOME}/vagrant-boxes/base-boxes"
 HOME_VAGRANT_PRIV = "#{HOME}/vagrant-boxes/holobot-dev/.vagrant"
 HOME_VAGRANT_BOX = "#{HOME}/vagrant-boxes/holobot-dev"
@@ -47,7 +49,11 @@ CLEAN = FileList[
   "./Thorfile",
   "./.git",
   "./Vagrantfile"
-].exclude("#{HOME_COOKBOOKS}/README.md")
+].exclude(
+  "#{HOME_COOKBOOKS}/README.md"
+).exclude(
+  # something else
+)
 
 # Do not use, use gemfile instead
 BASE_GEM_INSTALL_LIST = [

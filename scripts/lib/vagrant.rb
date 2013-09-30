@@ -9,6 +9,8 @@
 
 # -----------------------------CONST--------------------------------------------
 
+require "#{HOME_LIB}/conf.rb"
+CONFIG = HoloConfig.new(HOME_CONF)
 
 SUPPORTED_OS=[
   'ubuntu',
@@ -120,7 +122,7 @@ namespace :vm do
   desc 'Cleanup up the vagrant dir'
   task :cleanup do
     Rake::Task["vm:destroy"].invoke
-    vm_cmd('virtualbox', "box remove #{HOLOBOT_VERSION}-#{DEFAULT_OS}")
+    vm_cmd('virtualbox', "box remove #{CONFIG.version}-#{DEFAULT_OS}")
   end
   
   desc 'Rebirth does a force destroy followed by an up'

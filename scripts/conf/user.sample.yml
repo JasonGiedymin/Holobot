@@ -1,0 +1,9 @@
+# user.sample.yml - Sample user supplied yml config
+# These settings will override any default core.yml settings.
+
+
+# mode: {dev, test, prod}
+mode: dev
+
+# arch: {32, 64}
+arch: 64
