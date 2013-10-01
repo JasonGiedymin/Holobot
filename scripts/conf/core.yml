@@ -1,7 +1,7 @@
 # core.yml - Core system yaml
 # anchor a node with '&' and give it a name, reference it by '*name' 
 
-version: &version Holobot-dev-v3.0.0-RC2
+version: &version Holobot-dev-v3.1.0
 
 # # mode: {dev, test, prod}
 mode: dev
