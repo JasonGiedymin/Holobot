@@ -42,6 +42,11 @@ sudo docker pull strider/strider
 sudo docker run -d -p 3000:3000 strider/strider
 SCRIPT
 
+mesos = <<SCRIPT
+echo "Installing Mesos..."
+curl -fL https://raw.github.com/mesosphere/mesos-docker/master/bin/mesos-docker-setup | sudo bash
+SCRIPT
+
 etcd_binary_linux = 'etcd-holobot-linux.tar.bz2'
 replace_etcd_ubuntu = <<SCRIPT
 echo "Compiling etcd for linux and saving to nfs mount..."
@@ -73,6 +78,7 @@ props = {
     :cleanup => cleanup,
     :restartNetworking => restartNetworking,
     :strider => strider,
+    :mesos => mesos,
     :replace_etcd_ubuntu => replace_etcd_ubuntu
   }, # end scripts
   :chef => {
@@ -123,6 +129,11 @@ end
 def strider(config, props)
   # installs
   config.vm.provision :shell, inline: props[:scripts][:strider]
+end
+
+def mesos(config, props)
+  # installs
+  config.vm.provision :shell, inline: props[:scripts][:mesos]
 end
   
 def runChef(config, props)
@@ -240,6 +251,7 @@ Vagrant.configure("2") do |config|
     mounts(ubuntu, props)
     prepare(ubuntu, props)
     runChef(ubuntu, props)
+    mesos(ubuntu, props)
 
     # replace etcd, only needed if etcd version is NOT up to date
     if (COMPILE_CUSTOM_ETCD)
