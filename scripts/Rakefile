@@ -7,7 +7,7 @@
 require 'rake/clean'
 require 'net/http'
 
-# import 'lib/conf.rb'
+#import 'lib/conf.rb'
 import 'lib/system.rb'
 import 'lib/git.rb'
 import 'lib/vagrant.rb'
