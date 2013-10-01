@@ -62,7 +62,7 @@ BASE_GEM_INSTALL_LIST = [
 ]
 
 BASE_VAGRANT_PLUGINS = [
-  # "vagrant-vbguest",
+  "vagrant-vbguest",
   "vagrant-berkshelf",
   "vagrant-omnibus"
 ]
@@ -172,6 +172,7 @@ namespace :cookbooks do
       :modules => "https://github.com/Youscribe/modules-cookbook.git",
       :nodejs => "https://github.com/mdxp/nodejs-cookbook.git",
       :nvm => "https://github.com/hipsnip-cookbooks/nvm.git",
+      :partial_search => "https://github.com/opscode-cookbooks/partial_search.git",
       :python => "https://github.com/opscode-cookbooks/python.git",
       :runit => "https://github.com/opscode-cookbooks/runit.git",
       :scala => "https://github.com/RiotGames/scala-cookbook.git",
