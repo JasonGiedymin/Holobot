@@ -5,10 +5,12 @@
 
 ## require
 require 'rake/clean'
-import 'rake_helpers/system_helper.rb'
-import 'rake_helpers/git_helper.rb'
-import 'rake_helpers/versions_helper.rb'
-import 'rake_helpers/vagrant_helper.rb'
+require 'net/http'
+
+#import 'lib/conf.rb'
+import 'lib/system.rb'
+import 'lib/git.rb'
+import 'lib/vagrant.rb'
 
 
 # Immediately sync all stdout so that tools like buildbot can
@@ -30,6 +32,8 @@ HOME_NFS = "#{HOME}/nfs_mount"
 HOME_COOKBOOKS = "#{HOME}/cookbooks"
 HOME_BERKSHELF = "#{HOME}/berkshelf"
 HOME_THIRDPARTY = "#{HOME}/thirdparty"
+HOME_CONF = "#{HOME}/conf"
+HOME_LIB = "#{HOME}/lib"
 HOME_BASE_BOX = "#{HOME}/vagrant-boxes/base-boxes"
 HOME_VAGRANT_PRIV = "#{HOME}/vagrant-boxes/holobot-dev/.vagrant"
 HOME_VAGRANT_BOX = "#{HOME}/vagrant-boxes/holobot-dev"
@@ -45,7 +49,11 @@ CLEAN = FileList[
   "./Thorfile",
   "./.git",
   "./Vagrantfile"
-].exclude("#{HOME_COOKBOOKS}/README.md")
+].exclude(
+  "#{HOME_COOKBOOKS}/README.md"
+).exclude(
+  # something else
+)
 
 # Do not use, use gemfile instead
 BASE_GEM_INSTALL_LIST = [
@@ -78,6 +86,11 @@ THIRD_PARTY = {
   "docker" => "https://github.com/dotcloud/docker.git",
   "etcd/etcd" => "https://github.com/coreos/etcd.git"
 }
+
+Download_File = Struct.new(:host, :path, :file_name)
+THIRD_PARTY_DOWNLOADS = [
+  Download_File.new('downloads.mesosphere.io', '/master/ubuntu/13.04/', 'mesos_0.15.0-trunk-d20130921_amd64.deb')
+]
 
 Utility = Struct.new(:name, :url, :tag, :postinstall)
 UTILS = [
@@ -186,6 +199,24 @@ namespace :thirdparty do
   task :clone do
     THIRD_PARTY.each_pair do |name, url|
       clone(name, url, HOME_THIRDPARTY)
+    end
+  end
+
+  desc "Download third-party software"
+  task :download do
+    THIRD_PARTY_DOWNLOADS.each do |download|
+      Net::HTTP.start(download.host) do |http|
+        file_path = [download.path, download.file_name].join('')
+        file_loc = [HOME_THIRDPARTY, download.file_name].join('/')
+
+        if !File.exists?(file_loc)
+          puts("Downloading http://#{download.host}/#{file_path}, this may take a while...")
+          resp = http.get(file_path)
+          open(file_loc, "w") { |file| file.write(resp.body) }
+        else
+          puts("Found, no need to download again: [#{file_path}].")
+        end
+      end
     end
   end
 

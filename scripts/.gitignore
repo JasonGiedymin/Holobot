@@ -3,3 +3,4 @@ cookbooks/
 thirdparty/
 utils/
 nfs_mount/etcd
+conf/user.yml
