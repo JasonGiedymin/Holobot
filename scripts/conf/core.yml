@@ -1,4 +1,5 @@
 # core.yml - Core system yaml
+# Note: yes you could use a databag, but I'd like to limit dependence on Chef
 # anchor a node with '&' and give it a name, reference it by '*name' 
 
 version: &version Holobot-dev-v3.1.0
