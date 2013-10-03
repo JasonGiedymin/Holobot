@@ -118,11 +118,12 @@ props = {
 #------------------------------METHODS------------------------------------------
 
 def prepare(config, props)
+  puts "Sleeping 10 seconds to wait for networking..."
+
   # installs
   config.vm.provision :shell, inline: props[:scripts][:restartNetworking]
 
-  puts "Sleeping 5 seconds to wait for networking..."
-  sleep 5
+  sleep 10 # let vm networking catch up
 
   config.vm.provision :shell, inline: props[:scripts][:upgrade]
   config.vm.provision :shell, inline: props[:scripts][:installs]
