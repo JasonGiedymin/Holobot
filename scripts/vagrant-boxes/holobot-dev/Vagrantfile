@@ -70,6 +70,8 @@ echo "Restarting etcd..."
 sudo service etcd start
 SCRIPT
 
+# Move this out to a databag or even better, a yaml file
+# (yaml so we don't completely rely on vagrant or chef)
 props = {
   :appname => CONFIG.get('version'),
   :scripts => {
@@ -118,6 +120,10 @@ props = {
 def prepare(config, props)
   # installs
   config.vm.provision :shell, inline: props[:scripts][:restartNetworking]
+
+  puts "Sleeping 5 seconds to wait for networking..."
+  sleep 5
+
   config.vm.provision :shell, inline: props[:scripts][:upgrade]
   config.vm.provision :shell, inline: props[:scripts][:installs]
 end
@@ -160,8 +166,8 @@ def runChef(config, props)
     chef.add_recipe "golang"
     chef.add_recipe "nodejs"
     
-    # finally end with installs resulting in systemic changes
-    chef.add_recipe "docker"
+    # finally end with these installs resulting in systemic changes
+    chef.add_recipe "docker" # though this does get installed by mesos!
     chef.add_recipe "etcd"
 
     # long running
