@@ -33,6 +33,8 @@ VagrantCommand = Struct.new(:task, :desc, :cmd)
 VAGRANT_CMDS = [
   VagrantCommand.new('up', 'Start vm', 'up'),
   VagrantCommand.new('halt', 'Stop vm', 'halt'),
+  VagrantCommand.new('suspend', 'Suspend suspended vm', 'suspend'),
+  VagrantCommand.new('resume', 'Resume a suspended vm', 'resume'),
   VagrantCommand.new('destroy', 'Destroy and cleanup vm', 'destroy --force'),
   VagrantCommand.new('ssh', 'SSH onto vm', 'ssh'),
   VagrantCommand.new('provision', 'Provision vm', 'provision')
@@ -129,6 +131,12 @@ namespace :vm do
   task :rebirth do
     Rake::Task["vm:destroy"].invoke
     Rake::Task["vm:cleanup"].invoke
+    Rake::Task["vm:up"].invoke
+  end
+
+  desc 'Reboots a vm'
+  task :reboot do
+    Rake::Task["vm:halt"].invoke
     Rake::Task["vm:up"].invoke
   end
 
