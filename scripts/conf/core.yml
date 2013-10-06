@@ -13,6 +13,8 @@ arch: 64
 machines:
   # default macs
   ubuntu:
+    mem: 1024
+
     dev:
       private_ip: 10.10.10.10
       mac: 0800d2FF88F2
@@ -27,6 +29,8 @@ machines:
 
   # same as ubuntu, as one day coreos will replace ubuntu all together
   coreos:
+    mem: 1024
+
     dev:
       private_ip: 10.10.10.10
       mac: 0800d2FF88F2
@@ -41,6 +45,8 @@ machines:
 
   # different co-existing mac addresses
   strider:
+    mem: 512
+
     dev:
       private_ip: 10.10.10.11
       mac: 02EECB9EC1ED
