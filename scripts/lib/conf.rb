@@ -7,7 +7,7 @@
 require 'yaml'
 
 module Nodes
-  Keys = ['version', 'mode', 'arch', 'mac']
+  Keys = ['version', 'mode', 'arch', 'machines']
 end
 
 class HoloConfig
