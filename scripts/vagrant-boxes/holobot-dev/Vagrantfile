@@ -15,6 +15,7 @@ COMPILE_CUSTOM_ETCD = false
 require "#{HOME_LIB}/conf.rb" 
 CONFIG = HoloConfig.new(HOME_CONF)
 
+
 upgrade = <<SCRIPT
 echo Running apt-get update and upgrade...
 sudo apt-get update -y
@@ -117,6 +118,14 @@ props = {
 
 #------------------------------METHODS------------------------------------------
 
+def baseNode(os_name)
+  CONFIG.get('machines')[os_name][CONFIG.mode]
+end
+
+def baseOSNode(os_name)
+  CONFIG.get('machines')[os_name]
+end
+
 def prepare(config, props)
   puts "Sleeping 10 seconds to wait for networking..."
 
@@ -129,8 +138,8 @@ def prepare(config, props)
   config.vm.provision :shell, inline: props[:scripts][:installs]
 end
 
-def finishMessage(config, props)
-  config.vm.provision :shell, inline: "echo '#{props[:appname]} started...'"
+def finishMessage(config, props, os_name)
+  config.vm.provision :shell, inline: "echo '#{props[:appname]}-#{os_name} started...'"
 end
 
 def strider(config, props)
@@ -183,17 +192,21 @@ def cleanup(config, props)
   config.vm.provision :shell, inline: props[:scripts][:cleanup]
 end
 
-def network(config, props)
+def network(os_name, config, props)
   # Network
-  config.vm.network :private_network, ip: "10.10.10.10"#, :adapter => 2 # assigned to adapter 2 by default
-  
+  node_mac = baseNode(os_name)['mac']
+  private_ip = baseNode(os_name)['private_ip']
+
+  config.vm.network :private_network, ip: private_ip#, :adapter => 2 # assigned to adapter 2 by default
+
   if (CONFIG.arch == 64)
     # the main card configuration
-    config.vm.network :public_network, :bridge => 'en0: Wi-Fi (AirPort)', :mac => CONFIG.mac[CONFIG.mode]#, :adapter => 3
+    config.vm.network :public_network, :bridge => 'en0: Wi-Fi (AirPort)', :mac => node_mac#, :adapter => 3
   else
     # yes we are actually specifying adapter 3 in 32 arch
-    config.vm.network :public_network, :bridge => 'en0: Wi-Fi (AirPort)', :mac => CONFIG.mac[CONFIG.mode], :adapter => 3
+    config.vm.network :public_network, :bridge => 'en0: Wi-Fi (AirPort)', :mac => node_mac, :adapter => 3
   end
+
   #config.ssh.username = 'core'
   #config.ssh.forward_agent = true
   #config.ssh.timeout = 500
@@ -206,14 +219,16 @@ def mounts(config, props)
   config.vm.synced_folder HOME_NFS_MOUNT, REMOTE_NFS_MOUNT, id: "vagrant-root", :nfs => true # requires root privs
 end
 
-def hypervisor_settings(config, props)
+def hypervisor_settings(os_name, config, props)
   # Vbox specific configs, should think about removing these
+  mem = baseOSNode(os_name)['mem']
+
   config.vm.provider :virtualbox do |vb|
     puts "Using #{CONFIG.get('arch')}bit arch settings..."
     
     vb.customize ["modifyvm", :id, "--cpus", "1"] #making sure cpus are accounted at min
     # vb.customize ["modifyvm", :id, "--cpuexecutioncap", 50]
-    vb.customize ["modifyvm", :id, "--memory", "1024"] #min ram to build box
+    vb.customize ["modifyvm", :id, "--memory", mem] #min ram to build box
     
     if (CONFIG.get('arch') == 64)
       # vb.customize ["modifyvm", :id, "--ioapic", "on"]
@@ -247,14 +262,16 @@ end
 Vagrant.configure("2") do |config|
 
   config.vm.define "ubuntu", primary: true do |ubuntu|
+    os_name = "ubuntu"
+
     # Base setup
-    ubuntu.vm.box = "#{props[:appname]}-ubuntu"
+    ubuntu.vm.box = "#{props[:appname]}-#{os_name}"
 
     # config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'
-    ubuntu.vm.box_url = "#{HOME_BASE_BOX}/ubuntu_13_04_lts.box"
+    ubuntu.vm.box_url = "#{HOME_BASE_BOX}/#{os_name}_13_04_lts.box"
     # In a purely functional lang I would curry and compose the below. Ruby?
-    hypervisor_settings(ubuntu, props)
-    network(ubuntu, props)
+    hypervisor_settings(os_name, ubuntu, props)
+    network(os_name, ubuntu, props)
     mounts(ubuntu, props)
     prepare(ubuntu, props)
     runChef(ubuntu, props)
@@ -266,42 +283,45 @@ Vagrant.configure("2") do |config|
     end
 
     cleanup(ubuntu, props)
-    finishMessage(ubuntu, props)
+    finishMessage(ubuntu, props, os_name)
   end
 
   config.vm.define "coreos" do |coreos|
-    # Base setup
-    coreos.vm.box = "#{props[:appname]}-coreos"
+    os_name = "ubuntu"
 
-    coreos.vm.box_url = "#{HOME_BASE_BOX}/coreos_production_vagrant.box"
-    hypervisor_settings(coreos, props)
+    # Base setup
+    coreos.vm.box = "#{props[:appname]}-#{os_name}"
+
+    coreos.vm.box_url = "#{HOME_BASE_BOX}/#{os_name}_production_vagrant.box"
+    hypervisor_settings(os_name, coreos, props)
     network(coreos, props)
     mounts(coreos, props)
     runChef(coreos, props)
     cleanup(coreos, props)
-    finishMessage(coreos, props)
+    finishMessage(coreos, props, os_name)
   end
 
-  config.vm.define "strider", primary: true do |ubuntu|
+  config.vm.define "strider", primary: true do |strider|
+    os_name = "strider"
     # Base setup
-    ubuntu.vm.box = "#{props[:appname]}-strider-ubuntu"
+    strider.vm.box = "#{props[:appname]}-#{os_name}"
 
     # config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'
-    ubuntu.vm.box_url = "#{HOME_BASE_BOX}/ubuntu_13_04_lts.box"
+    strider.vm.box_url = "#{HOME_BASE_BOX}/ubuntu_13_04_lts.box"
     # In a purely functional lang I would curry and compose the below. Ruby?
-    hypervisor_settings(ubuntu, props)
-    network(ubuntu, props)
-    mounts(ubuntu, props)
-    prepare(ubuntu, props)
-    runChef(ubuntu, props)
+    hypervisor_settings(os_name, strider, props)
+    network(os_name, strider, props)
+    mounts(strider, props)
+    prepare(strider, props)
+    runChef(strider, props)
 
     # replace etcd, only needed if etcd version is NOT up to date
     if (COMPILE_CUSTOM_ETCD)
-      ubuntu.vm.provision :shell, inline: props[:scripts][:replace_etcd_ubuntu]
+      strider.vm.provision :shell, inline: props[:scripts][:replace_etcd_ubuntu]
     end
 
-    cleanup(ubuntu, props)
-    strider(ubuntu, props)
-    finishMessage(ubuntu, props)
+    cleanup(strider, props)
+    strider(strider, props)
+    finishMessage(strider, props, os_name)
   end
 end

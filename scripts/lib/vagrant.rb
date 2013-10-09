@@ -30,6 +30,9 @@ VAGRANT_STRICT_MODE = false
 
 VagrantCommand = Struct.new(:task, :desc, :cmd)
 
+# Simple custom commands here
+# If more complex commands are necessary, drop down to
+# the `namespace: vm` section below.
 VAGRANT_CMDS = [
   VagrantCommand.new('up', 'Start vm', 'up'),
   VagrantCommand.new('halt', 'Stop vm', 'halt'),
@@ -108,6 +111,26 @@ namespace :vm do
         end # end dynamic task
 
       end # end command each
+
+      desc "Removes #{CONFIG.version}-#{os} from vagrant."
+      task :cleanup do
+        Rake::Task["vm:destroy"].invoke
+        vm_cmd('virtualbox', "box remove #{CONFIG.version}-#{os}")
+      end
+
+      desc 'Rebirth does a force destroy followed by an up'
+      task :rebirth do
+        Rake::Task["vm:#{os}:destroy"].invoke
+        Rake::Task["vm:#{os}:cleanup"].invoke
+        Rake::Task["vm:#{os}:up"].invoke
+      end
+
+      desc "Reboots the #{os} vm"
+      task :reboot do
+        Rake::Task["vm:#{os}:halt"].invoke
+        Rake::Task["vm:#{os}:up"].invoke
+      end
+
     end # end namespace os
 
   end # end os
