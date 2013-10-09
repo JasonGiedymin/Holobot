@@ -2,7 +2,7 @@
 # Note: yes you could use a databag, but I'd like to limit dependence on Chef
 # anchor a node with '&' and give it a name, reference it by '*name' 
 
-version: &version Holobot-dev-v3.1.0
+version: &version Holobot-dev-v3.1.1
 
 # # mode: {dev, test, prod}
 mode: dev
@@ -10,7 +10,51 @@ mode: dev
 # arch: {32, 64}
 arch: 64
 
-mac:
-  dev: 0800d2FF88F2
-  test: 080027EB6B03
-  prod: 080027BE8715
+machines:
+  # default macs
+  ubuntu:
+    mem: 1024
+
+    dev:
+      private_ip: 10.10.10.10
+      mac: 0800d2FF88F2
+
+    test:
+      private_ip: 10.10.10.10
+      mac: 080027EB6B03
+
+    prod:
+      private_ip: 10.10.10.10
+      mac: 080027BE8715
+
+  # same as ubuntu, as one day coreos will replace ubuntu all together
+  coreos:
+    mem: 1024
+
+    dev:
+      private_ip: 10.10.10.10
+      mac: 0800d2FF88F2
+
+    test:
+      private_ip: 10.10.10.10
+      mac: 080027EB6B03
+
+    prod:
+      private_ip: 10.10.10.10
+      mac: 080027BE8715
+
+  # different co-existing mac addresses
+  strider:
+    mem: 512
+
+    dev:
+      private_ip: 10.10.10.11
+      mac: 02EECB9EC1ED
+
+    test:
+      private_ip: 10.10.10.11
+      mac: 02895C872CC5
+
+    prod:
+      private_ip: 10.10.10.11
+      mac: 02D7DAEB3F8C
