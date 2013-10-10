@@ -12,10 +12,12 @@
 require "#{HOME_LIB}/conf.rb"
 CONFIG = HoloConfig.new(HOME_CONF)
 
+# TODO: Change OS to BOX or something
 SUPPORTED_OS=[
   'ubuntu',
   'coreos',
-  'strider'
+  'strider',
+  'registry'
 ]
 
 # We also define a primary in the multi machine Vagrantfile.
@@ -70,7 +72,7 @@ def say(word)
   puts "Hi #{word}"
 end
 
-
+# TODO: wth is this here? entire lib dir is nuts
 namespace :baseboxes do
   def curl(name, url)
     puts "Downloading base box [ #{name} via #{url} ]"
@@ -144,10 +146,18 @@ namespace :vm do
   end # end default command each
 
 
-  desc 'Cleanup up the vagrant dir'
+  desc 'Cleanup up latest holobot box'
   task :cleanup do
     Rake::Task["vm:destroy"].invoke
     vm_cmd('virtualbox', "box remove #{CONFIG.version}-#{DEFAULT_OS}")
+  end
+
+  desc 'Cleanup all boxes'
+  task :cleanupall do
+    SUPPORTED_OS.each do |os|
+      puts "\ndestroying #{os}..."
+      Rake::Task["vm:#{os}:destroy"].invoke
+    end
   end
   
   desc 'Rebirth does a force destroy followed by an up'

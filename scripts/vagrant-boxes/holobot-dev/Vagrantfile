@@ -33,8 +33,11 @@ sudo apt-get clean
 SCRIPT
 
 restartNetworking = <<SCRIPT
-echo "Restarting networking"
-sudo ifdown -a && sudo ifup -a
+# echo "Restarting networking"
+# sudo ifdown -a
+# sudo ifup -a
+# echo "Sleeping 10 seconds, waiting for networking..."
+# sleep 10
 SCRIPT
 
 strider = <<SCRIPT
@@ -46,6 +49,19 @@ SCRIPT
 mesos = <<SCRIPT
 echo "Installing Mesos..."
 curl -fL https://raw.github.com/mesosphere/mesos-docker/master/bin/mesos-docker-setup | sudo bash
+SCRIPT
+
+registry = <<SCRIPT
+## local source dir is default location
+## export DOCKER_REGISTRY_CONFIG=config.yml
+# export SETTINGS_FLAVOR=dev
+# cd /mnt/holobot-nfs/docker-registry
+# sudo docker build .
+echo "Running docker-registry docker container..."
+sudo docker pull samalba/docker-registry
+sudo docker run -d -p 5000:5000 samalba/docker-registry
+echo "Checking for docker-registry response:"
+curl -L http://10.10.10.10:5000/v1/_ping
 SCRIPT
 
 etcd_binary_linux = 'etcd-holobot-linux.tar.bz2'
@@ -82,6 +98,7 @@ props = {
     :restartNetworking => restartNetworking,
     :strider => strider,
     :mesos => mesos,
+    :registry => registry,
     :replace_etcd_ubuntu => replace_etcd_ubuntu
   }, # end scripts
   :chef => {
@@ -127,12 +144,12 @@ def baseOSNode(os_name)
 end
 
 def prepare(config, props)
-  puts "Sleeping 10 seconds to wait for networking..."
+  # puts "Sleeping 10 seconds to wait for networking..."
 
   # installs
   config.vm.provision :shell, inline: props[:scripts][:restartNetworking]
 
-  sleep 10 # let vm networking catch up
+  # sleep 10 # let vm networking catch up
 
   config.vm.provision :shell, inline: props[:scripts][:upgrade]
   config.vm.provision :shell, inline: props[:scripts][:installs]
@@ -150,6 +167,11 @@ end
 def mesos(config, props)
   # installs
   config.vm.provision :shell, inline: props[:scripts][:mesos]
+end
+
+def registry(config, props)
+  # installs
+  config.vm.provision :shell, inline: props[:scripts][:registry]
 end
   
 def runChef(config, props)
@@ -294,7 +316,7 @@ Vagrant.configure("2") do |config|
 
     coreos.vm.box_url = "#{HOME_BASE_BOX}/#{os_name}_production_vagrant.box"
     hypervisor_settings(os_name, coreos, props)
-    network(coreos, props)
+    network(os_name, coreos, props)
     mounts(coreos, props)
     runChef(coreos, props)
     cleanup(coreos, props)
@@ -323,5 +345,29 @@ Vagrant.configure("2") do |config|
     cleanup(strider, props)
     strider(strider, props)
     finishMessage(strider, props, os_name)
+  end
+
+  config.vm.define "registry", primary: true do |box|
+    os_name = "registry"
+    # Base setup
+    box.vm.box = "#{props[:appname]}-#{os_name}"
+
+    # config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'
+    box.vm.box_url = "#{HOME_BASE_BOX}/ubuntu_13_04_lts.box"
+    # In a purely functional lang I would curry and compose the below. Ruby?
+    hypervisor_settings(os_name, box, props)
+    network(os_name, box, props)
+    mounts(box, props)
+    prepare(box, props)
+    runChef(box, props)
+
+    # replace etcd, only needed if etcd version is NOT up to date
+    if (COMPILE_CUSTOM_ETCD)
+      box.vm.provision :shell, inline: props[:scripts][:replace_etcd_ubuntu]
+    end
+
+    cleanup(box, props)
+    registry(box, props)
+    finishMessage(box, props, os_name)
   end
 end

@@ -32,6 +32,7 @@ HOME_NFS = "#{HOME}/nfs_mount"
 HOME_COOKBOOKS = "#{HOME}/cookbooks"
 HOME_BERKSHELF = "#{HOME}/berkshelf"
 HOME_THIRDPARTY = "#{HOME}/thirdparty"
+HOME_DOCKERFILES = "#{HOME}/dockerfiles"
 HOME_CONF = "#{HOME}/conf"
 HOME_LIB = "#{HOME}/lib"
 HOME_BASE_BOX = "#{HOME}/vagrant-boxes/base-boxes"
@@ -84,6 +85,7 @@ BASE_BOX_URLS = {
 
 THIRD_PARTY = {
   "docker" => "https://github.com/dotcloud/docker.git",
+  "docker-registry" => "https://github.com/dotcloud/docker-registry.git",
   "etcd/etcd" => "https://github.com/coreos/etcd.git"
 }
 
@@ -106,6 +108,8 @@ task :default do
 end
 
 
+# TODO: seems that I made darwin default here
+# Luckily we don't rely on this script atm.
 def package_etcd
   nfs_target_etcd = "#{HOME_NFS}/etcd"
   FileUtils.rm_rf(nfs_target_etcd)
@@ -131,6 +135,24 @@ def package_etcd
     "cp -R #{HOME_APPS}/ubuntu/etcd/* #{HOME_NFS}/etcd/",
     "copying etcd.conf for use by linux"
   )
+end
+
+def package_registry
+  app_name = 'docker-registry'
+  nfs_target_registry = "#{HOME_NFS}/#{app_name}"
+  FileUtils.rm_rf(nfs_target_registry)
+
+  shell_cmd(
+    "./",
+    "cp -R #{HOME_THIRDPARTY}/#{app_name} #{HOME_NFS}",
+    "copying #{app_name}"
+  )
+
+  shell_cmd(
+    "./",
+    "cp -R #{HOME_DOCKERFILES}/#{app_name}/config.yml #{HOME_NFS}/#{app_name}",
+    "copying config.yml from dockerfiles to #{app_name} package"
+  )  
 end
 
 # Base namespace
@@ -199,6 +221,7 @@ namespace :thirdparty do
   desc "Clone third-party software (docker, etc...)"
   task :clone do
     THIRD_PARTY.each_pair do |name, url|
+      FileUtils.rm_rf("#{HOME_THIRDPARTY}/#{name}")
       clone(name, url, HOME_THIRDPARTY)
     end
   end
@@ -221,12 +244,13 @@ namespace :thirdparty do
     end
   end
 
-  desc "Gets latest etcd source to compile and package"
+  desc "Gets latest source to compile and package"
   task :package do
     Rake::Task["thirdparty:clean"].invoke
     Rake::Task["thirdparty:clone"].invoke
 
     package_etcd()
+    # package_registry()
   end
 end
 
