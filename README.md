@@ -4,24 +4,43 @@ HoloBot
 ## Quickstart
 
 The quickstart is divided into three parts.
+
 1. install dependencies
 1. cloning the repo
 1. proceeding to the getting started section
 
 ### Dependencies
 
-    # Install NVM aka (Node Version Manager)
-    nvm use [the latest version]
+    # VirtualBox
+    # Install version 4.2.18
+    # https://www.virtualbox.org/wiki/Downloads or
+    # https://www.virtualbox.org/wiki/Download_Old_Builds_4_2
+    # Note that you may encounter weird problems with guest additions
+    # depending on what version of VirtualBox you use.
+
+    # Vagrant
+    # Install version v1.3.4
+    # http://downloads.vagrantup.com/tags/v1.3.4
+
+    # Install NVM aka (Node Version Manager) https://github.com/creationix/nvm
+    NODEJS_LATEST=$(nvm ls-remote | tail -n1)
+    nvm install $NODEJS_LATEST # installs the latest if not installed
+    nvm use $NODEJS_LATEST
 
     # Install RVM (Ruby Version Manager)
     # Install the latest 1.9.x or 2.0.x branch
-    rvm use --default ruby-1.9.3-p327
+    HOLOBOT_RUBY=1.9.3-p448
+    rvm install --default $HOLOBOT_RUBY
+    # Use that ruby
+    rvm use --default $HOLOBOT_RUBY
 
     # If ever you get into gem dependency issues
     # go ahead and delete the ruby version entirely
     # and re-install
-    rvm uninstall ruby-1.9.3-p327
-    rvm install --default ruby-1.9.3-p327
+    rvm uninstall $HOLOBOT_RUBY
+    rvm install --default $HOLOBOT_RUBY
+
+    gem install berkshelf bundler
 
 
 ### Execute the following
@@ -29,12 +48,10 @@ The quickstart is divided into three parts.
     git clone git@github.com:JasonGiedymin/Holobot.git
     git submodule update --init
 
-    # Add the following line to the very top of the [./.git/config] file
-    # It provides this simple command to delete submodules easily via: 
+    # The following git alias provides
+    # a simple command to delete submodules easily via: 
     #     git rms ./path/to/some/submodule
-    [alias]
-    rms = "!f(){ git rm --cached \"$1\";rm -r \"$1\";git config -f .gitmodules --remove-section \"submodule.$1\";git config -f .git/config --remove-section \"submodule.$1\";git add .gitmodules; }; f"
-
+    git config alias.rms "!f(){ git rm --cached \"$1\";rm -r \"$1\";git config -f .gitmodules --remove-section \"submodule.$1\";git config -f .git/config --remove-section \"submodule.$1\";git add .gitmodules; }; f"
 
 ### Dependencies
 
@@ -50,6 +67,7 @@ Next see the wiki [Getting Started](https://github.com/JasonGiedymin/Holobot/wik
 
 
 ## HoloBot Parts
+
 1. apps
 1. ~~docs~~ (replaced with wiki)
 1. wiki - as a submodule, remember to do an init
@@ -62,5 +80,6 @@ We use vagrant to spin up VMs which host Holobot, a distributed docker managemen
 
 
 ## Hooks
+
 1. Trello is tied to the repo for quick push/pull/merged list visability.
 
