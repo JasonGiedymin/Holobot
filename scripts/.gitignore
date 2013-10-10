@@ -3,4 +3,5 @@ cookbooks/
 thirdparty/
 utils/
 nfs_mount/etcd
+nfs_mount/docker-registry
 conf/user.yml
