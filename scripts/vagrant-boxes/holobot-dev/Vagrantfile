@@ -112,7 +112,7 @@ props = {
         'version' => '1.1.2'
       },
       'etcd' => {
-        'version' => '0.1.1'
+        'version' => '0.1.2'
       },
       'nodejs' => {
         'version' => '0.10.18',
