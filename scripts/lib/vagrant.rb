@@ -14,10 +14,11 @@ CONFIG = HoloConfig.new(HOME_CONF)
 
 # TODO: Change OS to BOX or something
 SUPPORTED_OS=[
-  'registry', # must be 1st
-  'strider',
-  'ubuntu'
+  #'registry', # must be 1st
+  #'strider',
+  #'ubuntu'
   #'coreos' # someday this will replace ubuntu as our _base os_
+  'openshift'
 ]
 
 # We also define a primary in the multi machine Vagrantfile.
@@ -97,6 +98,7 @@ namespace :baseboxes do
         curl(name, box_info['url']) if box_info['track']
       end
     end
+
   end
 end
 

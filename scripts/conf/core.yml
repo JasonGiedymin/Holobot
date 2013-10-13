@@ -2,7 +2,7 @@
 # Note: yes you could use a databag, but I'd like to limit dependence on Chef
 # anchor a node with '&' and give it a name, reference it by '*name' 
 
-version: &version Holobot-dev-v3.1.2
+version: &version Holobot-dev-v4.0.0
 
 # # mode: {dev, test, prod}
 mode: dev
@@ -11,11 +11,55 @@ mode: dev
 arch: 64
 
 machines:
-  # default macs
+
+  openshift:
+    cpu: 2
+    mem: 1024
+    disk: 'openshift-origin.vmdk'
+    mounts: false
+    nfs: false
+    chef: false
+    etcd: false
+
+    dev:
+      private_ip: 10.10.10.13
+      mac: 0800d2FF88F2
+
+    test:
+      private_ip: 10.20.10.13
+      mac: 080027EB6B03
+
+    prod:
+      private_ip: 10.30.10.13
+      mac: 080027BE8715
+
+  centos:
+    cpu: 2
+    mem: 1024
+    mounts: false
+    nfs: false
+    chef: false
+    etcd: false
+
+    dev:
+      private_ip: 10.10.10.14
+      mac: 025EDFE84F7F
+
+    test:
+      private_ip: 10.20.10.14
+      mac: 02882CFDC8F
+
+    prod:
+      private_ip: 10.30.10.14
+      mac: 0269347FC4C6
+
   ubuntu:
     cpu: 1
     mem: 1024
+    mounts: true
     nfs: true
+    chef: true
+    etcd: false
 
     dev:
       private_ip: 10.10.10.10
@@ -33,7 +77,10 @@ machines:
   coreos:
     cpu: 1
     mem: 1024
+    mounts: true
     nfs: false
+    chef: true
+    etcd: false
 
     dev:
       private_ip: 10.10.10.10
@@ -51,7 +98,10 @@ machines:
   strider:
     cpu: 1
     mem: 512
+    mounts: true
     nfs: false
+    chef: true
+    etcd: false
 
     dev:
       private_ip: 10.10.10.11

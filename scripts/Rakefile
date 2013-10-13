@@ -80,8 +80,25 @@ BASE_BOX_URLS = {
   :coreos_production_vagrant => {
     'track' => false, # will track meaning always download
     'url' => 'http://storage.core-os.net/coreos/amd64-generic/dev-channel/coreos_production_vagrant.box'
+  },
+  :centos_64_x64 => {
+    'track' => false,
+    'url' => 'http://developer.nrel.gov/downloads/vagrant-boxes/CentOS-6.4-x86_64-v20130731.box'
   }
 }
+
+# Execute this during thirdparty routine
+# TODO: make base_box_urls re-use the below
+Packed_File = Struct.new(:name, :url, :track, :options, :extract, :deposit)
+PACKED_FILES = [
+  Packed_File.new('openshift_lts',
+                  'https://mirror.openshift.com/pub/origin-server/release/2/images/openshift-origin_build-2.zip',
+                  false,
+                  '--secure-protocol=SSLv3',
+                  'openshift-origin.vmdk',
+                  "#{HOME_BASE_BOX}"
+  )
+]
 
 THIRD_PARTY = {
   "docker" => "https://github.com/dotcloud/docker.git",
@@ -255,6 +272,40 @@ namespace :thirdparty do
 end
 
 
+namespace :packedfiles do
+  desc "Download and extract necessary files"
+  task :download do
+    # Struct.new(:name, :url, :track, :options:, :extract, :deposit)
+    PACKED_FILES.each do |pf|
+      if ( !File.exists?("#{pf.deposit}/#{pf.extract}") || pf.track )
+        shell_cmd(
+          "./",
+          "wget #{pf.options} --directory-prefix=#{pf.deposit}/tmp #{pf.url}",
+          "Downloading #{pf.name}"
+        )
+
+        shell_cmd(
+          "/#{pf.deposit}/tmp",
+          "unzip -ov *.zip",
+          "Unzipping..."
+        )
+
+        shell_cmd(
+          "/#{pf.deposit}/tmp",
+          "mv #{pf.extract} #{pf.deposit}",
+          "Moving necessary file..."
+        )
+
+        shell_cmd(
+          "/#{pf.deposit}",
+          "rm -R #{pf.deposit}/tmp",
+          "Cleaning up tmp..."
+        )        
+      end
+    end
+  end
+end
+
 # Install namespace for setting up base environment
 namespace :install do
   def installGem(gem_name)
@@ -338,6 +389,7 @@ namespace :install do
     # Gather resources
     Rake::Task["cookbooks:clone"].invoke
     Rake::Task["thirdparty:clone"].invoke
+    Rake::Task['packedfiles:download'].invoke
 
     # Install dependencies
     Rake::Task["install:deps"].invoke

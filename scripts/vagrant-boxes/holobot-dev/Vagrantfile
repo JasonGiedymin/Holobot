@@ -143,7 +143,7 @@ def baseOSNode(os_name)
   CONFIG.get('machines')[os_name]
 end
 
-def prepare(config, props)
+prepare = Proc.new do |os_name, config, props|
   # puts "Sleeping 10 seconds to wait for networking..."
 
   # installs
@@ -155,26 +155,22 @@ def prepare(config, props)
   config.vm.provision :shell, inline: props[:scripts][:installs]
 end
 
-def finishMessage(config, props, os_name)
-  config.vm.provision :shell, inline: "echo '#{props[:appname]}-#{os_name} started...'"
-end
-
-def strider(config, props)
-  # installs
+strider = Proc.new do |os_name, config, props|
   config.vm.provision :shell, inline: props[:scripts][:strider]
 end
 
-def mesos(config, props)
-  # installs
-  config.vm.provision :shell, inline: props[:scripts][:mesos]
-end
-
-def registry(config, props)
-  # installs
+registry = Proc.new do |os_name, config, props|
   config.vm.provision :shell, inline: props[:scripts][:registry]
 end
-  
-def runChef(config, props)
+
+etcd = Proc.new do |os_name, config, props|
+  # replace etcd, only needed if etcd version is NOT up to date
+  if (COMPILE_CUSTOM_ETCD)
+    box.vm.provision :shell, inline: props[:scripts][:replace_etcd_ubuntu]
+  end
+end
+
+runChef = Proc.new do |os_name, config, props|
   # chef
   config.omnibus.chef_version = :latest #Define omnibus client to utilize
 
@@ -210,7 +206,15 @@ def runChef(config, props)
   # config.berkshelf.enabled = true
 end
 
-def cleanup(config, props)
+def finishMessage(os_name, config, props)
+  config.vm.provision :shell, inline: "echo '#{props[:appname]}-#{os_name} started...'"
+end
+
+mesos = Proc.new do |os_name, config, props|
+  config.vm.provision :shell, inline: props[:scripts][:mesos]
+end
+  
+ubuntuCleanup = Proc.new do |os_name, config, props|
   config.vm.provision :shell, inline: props[:scripts][:cleanup]
 end
 
@@ -235,18 +239,21 @@ def network(os_name, config, props)
   #config.ssh.max_tries = 40
 end
 
-def mounts(os_name, config, props)
+mounts = Proc.new do |os_name, config, props|
   use_nfs = baseOSNode(os_name)['nfs']
   config.vm.synced_folder HOME_NFS_MOUNT, REMOTE_NFS_MOUNT, id: "vagrant-root", :nfs => use_nfs # requires root privs
 end
 
-def hypervisor_settings(os_name, config, props)
+def hypervisorSettings(os_name, config, props)
   # Vbox specific configs, should think about removing these
   mem = baseOSNode(os_name)['mem']
   cpu = baseOSNode(os_name)['cpu']
+  disk = baseOSNode(os_name)['disk']
+  disk_uri = "#{HOME_BASE_BOX}/#{disk}"
 
   config.vm.provider :virtualbox do |vb|
     puts "Using #{CONFIG.get('arch')}bit arch settings..."
+
     
     vb.customize ["modifyvm", :id, "--cpus", cpu] #making sure cpus are accounted at min
     # vb.customize ["modifyvm", :id, "--cpuexecutioncap", 50]
@@ -269,10 +276,38 @@ def hypervisor_settings(os_name, config, props)
       vb.customize ["modifyvm", :id, "--rtcuseutc", "on"]
     end
 
+    # Disks
+    if ( disk.length > 0 && File.exists?(disk_uri))
+      #vb.customize ["storageattach", :id, "--type", 'hdd']
+      vb.customize ["storageattach", :id, "--medium", disk_uri]
+    end
+
     # vb.gui = true #just in case
   end
 end
 
+def standard_vm(os_name, config, box, props, box_file='', pre=[], post=[])
+  # Base setup
+  box.vm.box = "#{props[:appname]}-#{os_name}"
+  box.vm.box_url = "#{HOME_BASE_BOX}/#{box_file}" if (box_file.length > 0)
+
+  # will always run
+  hypervisorSettings(os_name, config, props)
+  network(os_name, config, props)
+
+  standardOps = []
+  standardOps.push(mounts) if baseOSNode(os_name)['mounts']
+
+  standardOps.concat(pre)
+  standardOps.push(runChef) if baseOSNode(os_name)['chef']
+  standardOps.push(etcd) if baseOSNode(os_name)['etcd']
+  standardOps.concat(post)
+    
+  # Finally run it all
+  standardOps.each{ |x| x.call(os_name, config, props) }
+
+  finishMessage(os_name, config, props)
+end
 
 #------------------------------MAIN---------------------------------------------
 
@@ -281,93 +316,31 @@ end
 #Vagrant.require_plugin 'vagrant-berkshelf'
 #Vagrant.require_plugin 'vagrant-omnibus'
 
+# TODO: this can be refactored out to the yml file now
 Vagrant.configure("2") do |config|
-
-  config.vm.define "ubuntu", primary: true do |ubuntu|
-    os_name = "ubuntu"
-
-    # Base setup
-    ubuntu.vm.box = "#{props[:appname]}-#{os_name}"
-
-    # config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'
-    ubuntu.vm.box_url = "#{HOME_BASE_BOX}/#{os_name}_13_04_lts.box"
-    # In a purely functional lang I would curry and compose the below. Ruby?
-    hypervisor_settings(os_name, ubuntu, props)
-    network(os_name, ubuntu, props)
-    mounts(os_name, ubuntu, props)
-    prepare(ubuntu, props)
-    runChef(ubuntu, props)
-    mesos(ubuntu, props)
-
-    # replace etcd, only needed if etcd version is NOT up to date
-    if (COMPILE_CUSTOM_ETCD)
-      ubuntu.vm.provision :shell, inline: props[:scripts][:replace_etcd_ubuntu]
-    end
-
-    cleanup(ubuntu, props)
-    finishMessage(ubuntu, props, os_name)
+  config.vm.define 'openshift', primary: true do |box|
+    standard_vm('openshift', config, box, props, 'centos_64_x64.box')
   end
 
-  config.vm.define "coreos" do |coreos|
-    os_name = "ubuntu"
-
-    # Base setup
-    coreos.vm.box = "#{props[:appname]}-#{os_name}"
-
-    coreos.vm.box_url = "#{HOME_BASE_BOX}/#{os_name}_production_vagrant.box"
-    hypervisor_settings(os_name, coreos, props)
-    network(os_name, coreos, props)
-    mounts(os_name, coreos, props)
-    runChef(coreos, props)
-    cleanup(coreos, props)
-    finishMessage(coreos, props, os_name)
+  config.vm.define 'centos' do |box|
+    standard_vm('centos', config, box, props, 'centos_64_x64.box')
   end
 
-  config.vm.define "strider", primary: true do |strider|
-    os_name = "strider"
-    # Base setup
-    strider.vm.box = "#{props[:appname]}-#{os_name}"
-
-    # config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'
-    strider.vm.box_url = "#{HOME_BASE_BOX}/ubuntu_13_04_lts.box"
-    # In a purely functional lang I would curry and compose the below. Ruby?
-    hypervisor_settings(os_name, strider, props)
-    network(os_name, strider, props)
-    mounts(os_name, strider, props)
-    prepare(strider, props)
-    runChef(strider, props)
-
-    # replace etcd, only needed if etcd version is NOT up to date
-    if (COMPILE_CUSTOM_ETCD)
-      strider.vm.provision :shell, inline: props[:scripts][:replace_etcd_ubuntu]
-    end
-
-    cleanup(strider, props)
-    # strider(strider, props)
-    finishMessage(strider, props, os_name)
+  config.vm.define 'ubuntu' do |box|
+    standard_vm('ubuntu', config, box, props, 'ubuntu_13_04_lts.box', [prepare], [mesos, ubuntuCleanup])
   end
 
-  config.vm.define "registry", primary: true do |box|
-    os_name = "registry"
-    # Base setup
-    box.vm.box = "#{props[:appname]}-#{os_name}"
-
-    # config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'
-    box.vm.box_url = "#{HOME_BASE_BOX}/ubuntu_13_04_lts.box"
-    # In a purely functional lang I would curry and compose the below. Ruby?
-    hypervisor_settings(os_name, box, props)
-    network(os_name, box, props)
-    mounts(os_name, box, props)
-    prepare(box, props)
-    runChef(box, props)
-
-    # replace etcd, only needed if etcd version is NOT up to date
-    if (COMPILE_CUSTOM_ETCD)
-      box.vm.provision :shell, inline: props[:scripts][:replace_etcd_ubuntu]
-    end
-
-    cleanup(box, props)
-    registry(box, props)
-    finishMessage(box, props, os_name)
+  config.vm.define 'registry' do |box|
+    standard_vm('registry', config, box, props, 'ubuntu_13_04_lts.box', [prepare], [registry, ubuntuCleanup])
   end
+
+  config.vm.define 'strider' do |box|
+    standard_vm('strider', config, box, props, 'ubuntu_13_04_lts.box', [prepare], [strider, ubuntuCleanup])
+  end
+
+  config.vm.define 'coreos' do |box|
+    standard_vm('coreos', config, box, props, "#{os_name}_production_vagrant.box")
+  end
+
+
 end
