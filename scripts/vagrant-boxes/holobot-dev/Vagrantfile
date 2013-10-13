@@ -33,17 +33,17 @@ sudo apt-get clean
 SCRIPT
 
 restartNetworking = <<SCRIPT
-# echo "Restarting networking"
-# sudo ifdown -a
-# sudo ifup -a
-# echo "Sleeping 10 seconds, waiting for networking..."
-# sleep 10
+echo "Restarting networking"
+sudo ifdown -a
+sudo ifup -a
+echo "Sleeping 10 seconds, waiting for networking..."
+sleep 10
 SCRIPT
 
 strider = <<SCRIPT
 echo "Installing strider via Docker..."
-sudo docker pull strider/strider
-sudo docker run -d -p 3000:3000 strider/strider
+sudo docker pull 10.10.10.12:5000/strider
+sudo docker run -d -p 3000:3000 10.10.10.12:5000/strider
 SCRIPT
 
 mesos = <<SCRIPT
@@ -61,7 +61,7 @@ echo "Running docker-registry docker container..."
 sudo docker pull samalba/docker-registry
 sudo docker run -d -p 5000:5000 samalba/docker-registry
 echo "Checking for docker-registry response:"
-curl -L http://10.10.10.10:5000/v1/_ping
+curl -L http://10.10.10.12:5000/v1/_ping
 SCRIPT
 
 etcd_binary_linux = 'etcd-holobot-linux.tar.bz2'
@@ -235,20 +235,20 @@ def network(os_name, config, props)
   #config.ssh.max_tries = 40
 end
 
-def mounts(config, props)
-  # NFS Mount 
-  # disabled
-  config.vm.synced_folder HOME_NFS_MOUNT, REMOTE_NFS_MOUNT, id: "vagrant-root", :nfs => true # requires root privs
+def mounts(os_name, config, props)
+  use_nfs = baseOSNode(os_name)['nfs']
+  config.vm.synced_folder HOME_NFS_MOUNT, REMOTE_NFS_MOUNT, id: "vagrant-root", :nfs => use_nfs # requires root privs
 end
 
 def hypervisor_settings(os_name, config, props)
   # Vbox specific configs, should think about removing these
   mem = baseOSNode(os_name)['mem']
+  cpu = baseOSNode(os_name)['cpu']
 
   config.vm.provider :virtualbox do |vb|
     puts "Using #{CONFIG.get('arch')}bit arch settings..."
     
-    vb.customize ["modifyvm", :id, "--cpus", "1"] #making sure cpus are accounted at min
+    vb.customize ["modifyvm", :id, "--cpus", cpu] #making sure cpus are accounted at min
     # vb.customize ["modifyvm", :id, "--cpuexecutioncap", 50]
     vb.customize ["modifyvm", :id, "--memory", mem] #min ram to build box
     
@@ -294,7 +294,7 @@ Vagrant.configure("2") do |config|
     # In a purely functional lang I would curry and compose the below. Ruby?
     hypervisor_settings(os_name, ubuntu, props)
     network(os_name, ubuntu, props)
-    mounts(ubuntu, props)
+    mounts(os_name, ubuntu, props)
     prepare(ubuntu, props)
     runChef(ubuntu, props)
     mesos(ubuntu, props)
@@ -317,7 +317,7 @@ Vagrant.configure("2") do |config|
     coreos.vm.box_url = "#{HOME_BASE_BOX}/#{os_name}_production_vagrant.box"
     hypervisor_settings(os_name, coreos, props)
     network(os_name, coreos, props)
-    mounts(coreos, props)
+    mounts(os_name, coreos, props)
     runChef(coreos, props)
     cleanup(coreos, props)
     finishMessage(coreos, props, os_name)
@@ -333,7 +333,7 @@ Vagrant.configure("2") do |config|
     # In a purely functional lang I would curry and compose the below. Ruby?
     hypervisor_settings(os_name, strider, props)
     network(os_name, strider, props)
-    mounts(strider, props)
+    mounts(os_name, strider, props)
     prepare(strider, props)
     runChef(strider, props)
 
@@ -343,7 +343,7 @@ Vagrant.configure("2") do |config|
     end
 
     cleanup(strider, props)
-    strider(strider, props)
+    # strider(strider, props)
     finishMessage(strider, props, os_name)
   end
 
@@ -357,7 +357,7 @@ Vagrant.configure("2") do |config|
     # In a purely functional lang I would curry and compose the below. Ruby?
     hypervisor_settings(os_name, box, props)
     network(os_name, box, props)
-    mounts(box, props)
+    mounts(os_name, box, props)
     prepare(box, props)
     runChef(box, props)
 

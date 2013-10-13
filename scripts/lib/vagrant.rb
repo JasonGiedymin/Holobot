@@ -14,10 +14,10 @@ CONFIG = HoloConfig.new(HOME_CONF)
 
 # TODO: Change OS to BOX or something
 SUPPORTED_OS=[
-  'ubuntu',
-  'coreos',
+  'registry', # must be 1st
   'strider',
-  'registry'
+  'ubuntu'
+  #'coreos' # someday this will replace ubuntu as our _base os_
 ]
 
 # We also define a primary in the multi machine Vagrantfile.
@@ -171,6 +171,51 @@ namespace :vm do
   task :reboot do
     Rake::Task["vm:halt"].invoke
     Rake::Task["vm:up"].invoke
+  end
+
+  namespace :cluster do
+    desc 'Halt or shutdown cluster'
+    task :halt do
+      SUPPORTED_OS.each do |os|
+        puts "\nhalting #{os}..."
+        Rake::Task["vm:#{os}:halt"].invoke
+      end
+    end
+
+    desc 'Power up cluster'
+    task :up do
+      SUPPORTED_OS.each do |os|
+        puts "\npowering #{os}..."
+        Rake::Task["vm:#{os}:up"].invoke
+        Rake::Task["vm:#{os}:provision"].invoke # for good measure
+        Rake::Task["vm:#{os}:reboot"].invoke # for good measure
+      end
+    end
+
+    desc 'Rebirth an entire cluster'
+    task :rebirth do
+      SUPPORTED_OS.each do |os|
+        puts "\nrebirth-ing #{os}..."
+        Rake::Task["vm:#{os}:rebirth"].invoke
+      end
+    end
+
+    desc 'Destroys an entire cluster'
+    task :destroy do
+      SUPPORTED_OS.each do |os|
+        puts "\ndestroying #{os}..."
+        Rake::Task["vm:#{os}:destroy"].invoke
+      end
+    end
+
+    desc 'Reboots an entire cluster'
+    task :reboot do
+      SUPPORTED_OS.each do |os|
+        puts "\nrebooting #{os}..."
+        Rake::Task["vm:#{os}:reboot"].invoke
+      end
+    end
+
   end
 
 end # end vm
