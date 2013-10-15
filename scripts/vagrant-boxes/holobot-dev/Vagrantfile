@@ -276,11 +276,11 @@ def hypervisorSettings(os_name, config, props)
       vb.customize ["modifyvm", :id, "--rtcuseutc", "on"]
     end
 
-    # Disks
-    if ( disk.length > 0 && File.exists?(disk_uri))
-      #vb.customize ["storageattach", :id, "--type", 'hdd']
-      vb.customize ["storageattach", :id, "--medium", disk_uri]
-    end
+    # # Disks
+    # if ( disk.length > 0 && File.exists?(disk_uri))
+    #   #vb.customize ["storageattach", :id, "--type", 'hdd']
+    #   vb.customize ["storageattach", :id, "--medium", disk_uri]
+    # end
 
     # vb.gui = true #just in case
   end

@@ -15,7 +15,7 @@ machines:
   openshift:
     cpu: 2
     mem: 1024
-    disk: 'openshift-origin.vmdk'
+    # disk: 'openshift-origin.vmdk'
     mounts: false
     nfs: false
     chef: false
