@@ -84,6 +84,10 @@ BASE_BOX_URLS = {
   :centos_64_x64 => {
     'track' => false,
     'url' => 'http://developer.nrel.gov/downloads/vagrant-boxes/CentOS-6.4-x86_64-v20130731.box'
+  },
+  :fedora_19_x64 => {
+    'track' => false,
+    'url' => 'https://dl.dropboxusercontent.com/u/86066173/fedora-19.box'
   }
 }
 

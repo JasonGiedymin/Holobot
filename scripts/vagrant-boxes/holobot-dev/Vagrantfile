@@ -319,7 +319,7 @@ end
 # TODO: this can be refactored out to the yml file now
 Vagrant.configure("2") do |config|
   config.vm.define 'openshift', primary: true do |box|
-    standard_vm('openshift', config, box, props, 'centos_64_x64.box')
+    standard_vm('openshift', config, box, props, 'fedora_19_x64.box')
   end
 
   config.vm.define 'centos' do |box|
