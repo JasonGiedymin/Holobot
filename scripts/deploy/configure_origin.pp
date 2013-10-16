@@ -32,13 +32,13 @@ class { 'openshift_origin' :
     broker_dns_plugin          => 'nsupdate',
 
     #If installing from a local build, specify the path for Origin RPMs
-    #install_repo               => 'file:///root/origin-rpms',
+    #install_repo               => '',
 
     #If using BIND, let the broker know what TSIG key to use
-    named_tsig_priv_key         => 'JiLMW6kfKPxOQLt1+eR7II5q0KosEQ==',
+    named_tsig_priv_key         => 'Cye9AUKlSMDIh0Q30uZEAnsWzTobag==',
 
     #If using an external ethernet device other than eth0
-    #eth_device                 => '<ethernet device name, eg: enp0s5>',
+    eth_device                 => 'p8p1',
 
     #If using with GDM, or have users with UID 500 or greater, add to this list
     #os_unmanaged_users         => ['gdm'],

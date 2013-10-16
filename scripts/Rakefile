@@ -65,7 +65,8 @@ BASE_GEM_INSTALL_LIST = [
 BASE_VAGRANT_PLUGINS = [
   "vagrant-vbguest",
   "vagrant-berkshelf",
-  "vagrant-omnibus"
+  "vagrant-omnibus",
+  "vagrant-vbox-snapshot"
 ]
 
 BASE_BOX_URLS = {

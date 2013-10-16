@@ -13,8 +13,8 @@ arch: 64
 machines:
 
   openshift:
-    cpu: 2
-    mem: 1024
+    cpu: 4
+    mem: 2048
     # disk: 'openshift-origin.vmdk'
     mounts: false
     nfs: false
