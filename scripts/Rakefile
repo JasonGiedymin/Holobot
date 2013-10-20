@@ -86,9 +86,13 @@ BASE_BOX_URLS = {
     'track' => false,
     'url' => 'http://developer.nrel.gov/downloads/vagrant-boxes/CentOS-6.4-x86_64-v20130731.box'
   },
-  :fedora_19_x64 => {
+  :fedora_19_x64 => { # i don't trust this
     'track' => false,
     'url' => 'https://dl.dropboxusercontent.com/u/86066173/fedora-19.box'
+  },
+  :fedora_19 => { # this one is from redhat
+    'track' => false,
+    'url' => 'https://mirror.openshift.com/pub/vagrant/boxes/fedora-19.box'
   }
 }
 
@@ -121,6 +125,7 @@ UTILS = [
   # Disabled tracking vagrant for now, make sure to stick with v1.2.7
   # you may have to do gem uninstall vagrant
   # Utility.new('vagrant', 'https://github.com/mitchellh/vagrant.git', 'v1.2.7', 'gem uninstall -a vagrant && rake install')
+  Utility.new('origin', 'https://github.com/JasonGiedymin/puppet-openshift_origin.git', 'v2.0', 'echo "Obtained private origin release v2.0"')
 ]
 
 
@@ -356,8 +361,8 @@ namespace :install do
       if( util.postinstall.length > 0)
         shell_cmd(
           util_home,
-          "bundle install && rake install",
-          "install util #{util.name}"
+          util.postinstall,
+          "Installed util #{util.name}"
         )
       end
 

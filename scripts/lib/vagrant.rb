@@ -12,13 +12,15 @@
 require "#{HOME_LIB}/conf.rb"
 CONFIG = HoloConfig.new(HOME_CONF)
 
-# TODO: Change OS to BOX or something
+# TODO: Change to cluster
 SUPPORTED_OS=[
   #'registry', # must be 1st
   #'strider',
-  #'ubuntu'
+  'ubuntu',
+  'fedora',
+  'centos'
   #'coreos' # someday this will replace ubuntu as our _base os_
-  'openshift'
+  # 'openshift'
 ]
 
 # We also define a primary in the multi machine Vagrantfile.

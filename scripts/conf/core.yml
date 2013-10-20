@@ -12,47 +12,6 @@ arch: 64
 
 machines:
 
-  openshift:
-    cpu: 4
-    mem: 2048
-    # disk: 'openshift-origin.vmdk'
-    mounts: false
-    nfs: false
-    chef: false
-    etcd: false
-
-    dev:
-      private_ip: 10.10.10.13
-      mac: 0800d2FF88F2
-
-    test:
-      private_ip: 10.20.10.13
-      mac: 080027EB6B03
-
-    prod:
-      private_ip: 10.30.10.13
-      mac: 080027BE8715
-
-  centos:
-    cpu: 2
-    mem: 1024
-    mounts: false
-    nfs: false
-    chef: false
-    etcd: false
-
-    dev:
-      private_ip: 10.10.10.14
-      mac: 025EDFE84F7F
-
-    test:
-      private_ip: 10.20.10.14
-      mac: 02882CFDC8F
-
-    prod:
-      private_ip: 10.30.10.14
-      mac: 0269347FC4C6
-
   ubuntu:
     cpu: 1
     mem: 1024
@@ -60,6 +19,7 @@ machines:
     nfs: true
     chef: true
     etcd: false
+    box_file: 'ubuntu_13_04_lts.box'
 
     dev:
       private_ip: 10.10.10.10
@@ -81,6 +41,7 @@ machines:
     nfs: false
     chef: true
     etcd: false
+    box_file: 'coreos_production_vagrant.box'
 
     dev:
       private_ip: 10.10.10.10
@@ -102,6 +63,7 @@ machines:
     nfs: false
     chef: true
     etcd: false
+    box_file: 'ubuntu_13_04_lts.box'
 
     dev:
       private_ip: 10.10.10.11
@@ -119,6 +81,7 @@ machines:
     cpu: 1
     mem: 512
     nfs: false
+    box_file: 'ubuntu_13_04_lts.box'
 
     dev:
       private_ip: 10.10.10.12
@@ -131,3 +94,24 @@ machines:
     prod:
       private_ip: 10.30.10.12
       mac: 0277E25CD585
+
+  centos:
+    cpu: 2
+    mem: 1024
+    mounts: false
+    nfs: false
+    chef: false
+    etcd: false
+    box_file: 'centos_64_x64.box'
+
+    dev:
+      private_ip: 10.10.10.14
+      mac: 025EDFE84F7F
+
+    test:
+      private_ip: 10.20.10.14
+      mac: 02882CFDC8F
+
+    prod:
+      private_ip: 10.30.10.14
+      mac: 0269347FC4C6

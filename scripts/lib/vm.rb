@@ -96,8 +96,10 @@ module StandardVMLib
   def StandardVMLib.network
     Proc.new do |os_name, config, props|
       # Network
-      node_mac = baseNode(os_name)['mac']
-      private_ip = baseNode(os_name)['private_ip']
+      base_node = baseNode(os_name)
+      node_mac = base_node['mac']
+      private_ip = base_node['private_ip']
+      hostname = base_node['hostname']
 
       config.vm.network :private_network, ip: private_ip#, :adapter => 2 # assigned to adapter 2 by default
 
@@ -167,11 +169,20 @@ module StandardVMLib
       end
     end
   end
+
+  def StandardVMLib.ping
+    Proc.new do |os_name, config, props|
+      puts "running ping!"
+    end
+  end
+
 end
 
 # Standard VM
 class StandardVM
-  def initialize(os_name, config, box, props, box_file='', pre=[], post=[])
+  def initialize(os_name, config, box, props, pre=[], post=[])
+    box_file = baseOSNode(os_name)['box_file']
+    
     box.vm.box = "#{props[:appname]}-#{os_name}"
     box.vm.box_url = "#{HOME_BASE_BOX}/#{box_file}" if (box_file.length > 0)
 
@@ -182,7 +193,9 @@ class StandardVM
     standardOps.concat(pre)
     standardOps.push(StandardVMLib.runChef) if baseOSNode(os_name)['chef']
     standardOps.push(StandardVMLib.etcd) if baseOSNode(os_name)['etcd']
+
     standardOps.concat(post)
+
     standardOps.push(StandardVMLib.finishMessage)
     standardOps.each{ |x| x.call(os_name, config, props) }
   end

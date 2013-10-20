@@ -152,28 +152,32 @@ end
 
 # TODO: this can be refactored out to the yml file now
 Vagrant.configure("2") do |config|
-  config.vm.define 'openshift', primary: true do |box|
-    StandardVM.new('openshift', config, box, props, 'fedora_19_x64.box')
-  end
-
-  config.vm.define 'centos' do |box|
-    StandardVM.new('centos', config, box, props, 'centos_64_x64.box')
-  end
-
-  config.vm.define 'ubuntu' do |box|
-    StandardVM.new('ubuntu', config, box, props, 'ubuntu_13_04_lts.box', [StandardVMLib.prepare], [StandardVMLib.mesos, StandardVMLib.ubuntuCleanup])
+  config.vm.define 'ubuntu' , primary: true do |box|
+    StandardVM.new('ubuntu', config, box, props, [StandardVMLib.prepare], [StandardVMLib.mesos, StandardVMLib.ubuntuCleanup])
   end
 
   config.vm.define 'registry' do |box|
-    StandardVM.new('registry', config, box, props, 'ubuntu_13_04_lts.box', [StandardVMLib.prepare], [StandardVMLib.registry, StandardVMLib.ubuntuCleanup])
+    StandardVM.new('registry', config, box, props, [StandardVMLib.prepare], [StandardVMLib.registry, StandardVMLib.ubuntuCleanup])
   end
 
   config.vm.define 'strider' do |box|
-    StandardVM.new('strider', config, box, props, 'ubuntu_13_04_lts.box', [StandardVMLib.prepare], [StandardVMLib.strider, StandardVMLib.ubuntuCleanup])
+    StandardVM.new('strider', config, box, props, [StandardVMLib.prepare], [StandardVMLib.strider, StandardVMLib.ubuntuCleanup])
   end
 
   config.vm.define 'coreos' do |box|
-    StandardVM.new('coreos', config, box, props, "#{os_name}_production_vagrant.box")
+    StandardVM.new('coreos', config, box, props)
+  end
+
+  config.vm.define 'broker', primary: true do |box|
+    StandardVM.new('broker', config, box, props)
+  end
+
+  config.vm.define 'fedora' do |box|
+    StandardVM.new('fedora', config, box, props)
+  end
+
+  config.vm.define 'centos' do |box|
+    StandardVM.new('centos', config, box, props)
   end
 
 end
