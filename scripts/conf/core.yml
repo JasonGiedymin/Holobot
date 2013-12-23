@@ -2,7 +2,7 @@
 # Note: yes you could use a databag, but I'd like to limit dependence on Chef
 # anchor a node with '&' and give it a name, reference it by '*name' 
 
-version: &version Holobot-dev-v3.1.2
+version: &version Holobot-dev-v4.0.0
 
 # # mode: {dev, test, prod}
 mode: dev
@@ -11,11 +11,15 @@ mode: dev
 arch: 64
 
 machines:
-  # default macs
+
   ubuntu:
     cpu: 1
     mem: 1024
+    mounts: true
     nfs: true
+    chef: true
+    etcd: false
+    box_file: 'ubuntu_13_04_lts.box'
 
     dev:
       private_ip: 10.10.10.10
@@ -33,7 +37,11 @@ machines:
   coreos:
     cpu: 1
     mem: 1024
+    mounts: true
     nfs: false
+    chef: true
+    etcd: false
+    box_file: 'coreos_production_vagrant.box'
 
     dev:
       private_ip: 10.10.10.10
@@ -51,7 +59,11 @@ machines:
   strider:
     cpu: 1
     mem: 512
+    mounts: true
     nfs: false
+    chef: true
+    etcd: false
+    box_file: 'ubuntu_13_04_lts.box'
 
     dev:
       private_ip: 10.10.10.11
@@ -69,6 +81,7 @@ machines:
     cpu: 1
     mem: 512
     nfs: false
+    box_file: 'ubuntu_13_04_lts.box'
 
     dev:
       private_ip: 10.10.10.12
@@ -81,3 +94,24 @@ machines:
     prod:
       private_ip: 10.30.10.12
       mac: 0277E25CD585
+
+  centos:
+    cpu: 2
+    mem: 1024
+    mounts: false
+    nfs: false
+    chef: false
+    etcd: false
+    box_file: 'centos_64_x64.box'
+
+    dev:
+      private_ip: 10.10.10.14
+      mac: 025EDFE84F7F
+
+    test:
+      private_ip: 10.20.10.14
+      mac: 02882CFDC8F
+
+    prod:
+      private_ip: 10.30.10.14
+      mac: 0269347FC4C6

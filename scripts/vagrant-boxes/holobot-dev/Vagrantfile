@@ -14,7 +14,7 @@ COMPILE_CUSTOM_ETCD = false
 # relies on above (for now, and yes we need to split out project out into gems libs!)
 require "#{HOME_LIB}/conf.rb" 
 CONFIG = HoloConfig.new(HOME_CONF)
-
+require "#{HOME_LIB}/vm.rb" 
 
 upgrade = <<SCRIPT
 echo Running apt-get update and upgrade...
@@ -143,137 +143,6 @@ def baseOSNode(os_name)
   CONFIG.get('machines')[os_name]
 end
 
-def prepare(config, props)
-  # puts "Sleeping 10 seconds to wait for networking..."
-
-  # installs
-  config.vm.provision :shell, inline: props[:scripts][:restartNetworking]
-
-  # sleep 10 # let vm networking catch up
-
-  config.vm.provision :shell, inline: props[:scripts][:upgrade]
-  config.vm.provision :shell, inline: props[:scripts][:installs]
-end
-
-def finishMessage(config, props, os_name)
-  config.vm.provision :shell, inline: "echo '#{props[:appname]}-#{os_name} started...'"
-end
-
-def strider(config, props)
-  # installs
-  config.vm.provision :shell, inline: props[:scripts][:strider]
-end
-
-def mesos(config, props)
-  # installs
-  config.vm.provision :shell, inline: props[:scripts][:mesos]
-end
-
-def registry(config, props)
-  # installs
-  config.vm.provision :shell, inline: props[:scripts][:registry]
-end
-  
-def runChef(config, props)
-  # chef
-  config.omnibus.chef_version = :latest #Define omnibus client to utilize
-
-  config.vm.provision "chef_solo" do |chef|
-    chef.log_level = :debug
-    chef.cookbooks_path = [
-      "#{HOME_SCRIPTS}/berkshelf", 
-      "#{HOME_SCRIPTS}/cookbooks"
-    ]
-
-    # chef.data_bags_path = "#{HOME_SCRIPTS}/data_bags"
-
-    chef.json = props[:chef][:json]
-
-    # os
-    chef.add_recipe "apt" # make sure this is always first!!!
-    chef.add_recipe "build-essential" # make sure this is always second!!!
-       
-    # simple
-    chef.add_recipe "python"
-    chef.add_recipe "golang"
-    chef.add_recipe "nodejs"
-    
-    # finally end with these installs resulting in systemic changes
-    chef.add_recipe "docker" # though this does get installed by mesos!
-    chef.add_recipe "etcd"
-
-    # long running
-    chef.add_recipe "java"
-    chef.add_recipe "scala"
-  end
-
-  # config.berkshelf.enabled = true
-end
-
-def cleanup(config, props)
-  config.vm.provision :shell, inline: props[:scripts][:cleanup]
-end
-
-def network(os_name, config, props)
-  # Network
-  node_mac = baseNode(os_name)['mac']
-  private_ip = baseNode(os_name)['private_ip']
-
-  config.vm.network :private_network, ip: private_ip#, :adapter => 2 # assigned to adapter 2 by default
-
-  if (CONFIG.arch == 64)
-    # the main card configuration
-    config.vm.network :public_network, :bridge => 'en0: Wi-Fi (AirPort)', :mac => node_mac#, :adapter => 3
-  else
-    # yes we are actually specifying adapter 3 in 32 arch
-    config.vm.network :public_network, :bridge => 'en0: Wi-Fi (AirPort)', :mac => node_mac, :adapter => 3
-  end
-
-  #config.ssh.username = 'core'
-  #config.ssh.forward_agent = true
-  #config.ssh.timeout = 500
-  #config.ssh.max_tries = 40
-end
-
-def mounts(os_name, config, props)
-  use_nfs = baseOSNode(os_name)['nfs']
-  config.vm.synced_folder HOME_NFS_MOUNT, REMOTE_NFS_MOUNT, id: "vagrant-root", :nfs => use_nfs # requires root privs
-end
-
-def hypervisor_settings(os_name, config, props)
-  # Vbox specific configs, should think about removing these
-  mem = baseOSNode(os_name)['mem']
-  cpu = baseOSNode(os_name)['cpu']
-
-  config.vm.provider :virtualbox do |vb|
-    puts "Using #{CONFIG.get('arch')}bit arch settings..."
-    
-    vb.customize ["modifyvm", :id, "--cpus", cpu] #making sure cpus are accounted at min
-    # vb.customize ["modifyvm", :id, "--cpuexecutioncap", 50]
-    vb.customize ["modifyvm", :id, "--memory", mem] #min ram to build box
-    
-    if (CONFIG.get('arch') == 64)
-      # vb.customize ["modifyvm", :id, "--ioapic", "on"]
-      # vb.customize ["modifyvm", :id, "--acpi", "off"]
-      vb.customize ["modifyvm", :id, "--hwvirtex", "on"] #in case it is needed
-    
-      # by default pae is on! Turning it off will force the vm to switch PAE modes DURING boot
-      # which is NOT recommended, this is a bug for sure!
-      vb.customize ["modifyvm", :id, "--pae", "on"]
-
-      # vb.customize ["modifyvm", :id, "--rtcuseutc", "on"] # should be on by default
-    else
-      puts "Using 32bit arch settings..."
-      vb.customize ["modifyvm", :id, "--ioapic", "off"]
-      vb.customize ["modifyvm", :id, "--hwvirtex", "off"]
-      vb.customize ["modifyvm", :id, "--rtcuseutc", "on"]
-    end
-
-    # vb.gui = true #just in case
-  end
-end
-
-
 #------------------------------MAIN---------------------------------------------
 
 # Plugins
@@ -281,93 +150,34 @@ end
 #Vagrant.require_plugin 'vagrant-berkshelf'
 #Vagrant.require_plugin 'vagrant-omnibus'
 
+# TODO: this can be refactored out to the yml file now
 Vagrant.configure("2") do |config|
-
-  config.vm.define "ubuntu", primary: true do |ubuntu|
-    os_name = "ubuntu"
-
-    # Base setup
-    ubuntu.vm.box = "#{props[:appname]}-#{os_name}"
-
-    # config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'
-    ubuntu.vm.box_url = "#{HOME_BASE_BOX}/#{os_name}_13_04_lts.box"
-    # In a purely functional lang I would curry and compose the below. Ruby?
-    hypervisor_settings(os_name, ubuntu, props)
-    network(os_name, ubuntu, props)
-    mounts(os_name, ubuntu, props)
-    prepare(ubuntu, props)
-    runChef(ubuntu, props)
-    mesos(ubuntu, props)
-
-    # replace etcd, only needed if etcd version is NOT up to date
-    if (COMPILE_CUSTOM_ETCD)
-      ubuntu.vm.provision :shell, inline: props[:scripts][:replace_etcd_ubuntu]
-    end
-
-    cleanup(ubuntu, props)
-    finishMessage(ubuntu, props, os_name)
+  config.vm.define 'ubuntu' , primary: true do |box|
+    StandardVM.new('ubuntu', config, box, props, [StandardVMLib.prepare], [StandardVMLib.mesos, StandardVMLib.ubuntuCleanup])
   end
 
-  config.vm.define "coreos" do |coreos|
-    os_name = "ubuntu"
-
-    # Base setup
-    coreos.vm.box = "#{props[:appname]}-#{os_name}"
-
-    coreos.vm.box_url = "#{HOME_BASE_BOX}/#{os_name}_production_vagrant.box"
-    hypervisor_settings(os_name, coreos, props)
-    network(os_name, coreos, props)
-    mounts(os_name, coreos, props)
-    runChef(coreos, props)
-    cleanup(coreos, props)
-    finishMessage(coreos, props, os_name)
+  config.vm.define 'registry' do |box|
+    StandardVM.new('registry', config, box, props, [StandardVMLib.prepare], [StandardVMLib.registry, StandardVMLib.ubuntuCleanup])
   end
 
-  config.vm.define "strider", primary: true do |strider|
-    os_name = "strider"
-    # Base setup
-    strider.vm.box = "#{props[:appname]}-#{os_name}"
-
-    # config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'
-    strider.vm.box_url = "#{HOME_BASE_BOX}/ubuntu_13_04_lts.box"
-    # In a purely functional lang I would curry and compose the below. Ruby?
-    hypervisor_settings(os_name, strider, props)
-    network(os_name, strider, props)
-    mounts(os_name, strider, props)
-    prepare(strider, props)
-    runChef(strider, props)
-
-    # replace etcd, only needed if etcd version is NOT up to date
-    if (COMPILE_CUSTOM_ETCD)
-      strider.vm.provision :shell, inline: props[:scripts][:replace_etcd_ubuntu]
-    end
-
-    cleanup(strider, props)
-    # strider(strider, props)
-    finishMessage(strider, props, os_name)
+  config.vm.define 'strider' do |box|
+    StandardVM.new('strider', config, box, props, [StandardVMLib.prepare], [StandardVMLib.strider, StandardVMLib.ubuntuCleanup])
   end
 
-  config.vm.define "registry", primary: true do |box|
-    os_name = "registry"
-    # Base setup
-    box.vm.box = "#{props[:appname]}-#{os_name}"
-
-    # config.vm.box_url = 'http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box'
-    box.vm.box_url = "#{HOME_BASE_BOX}/ubuntu_13_04_lts.box"
-    # In a purely functional lang I would curry and compose the below. Ruby?
-    hypervisor_settings(os_name, box, props)
-    network(os_name, box, props)
-    mounts(os_name, box, props)
-    prepare(box, props)
-    runChef(box, props)
-
-    # replace etcd, only needed if etcd version is NOT up to date
-    if (COMPILE_CUSTOM_ETCD)
-      box.vm.provision :shell, inline: props[:scripts][:replace_etcd_ubuntu]
-    end
-
-    cleanup(box, props)
-    registry(box, props)
-    finishMessage(box, props, os_name)
+  config.vm.define 'coreos' do |box|
+    StandardVM.new('coreos', config, box, props)
   end
+
+  config.vm.define 'broker', primary: true do |box|
+    StandardVM.new('broker', config, box, props)
+  end
+
+  config.vm.define 'fedora' do |box|
+    StandardVM.new('fedora', config, box, props)
+  end
+
+  config.vm.define 'centos' do |box|
+    StandardVM.new('centos', config, box, props)
+  end
+
 end

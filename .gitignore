@@ -76,3 +76,7 @@ conf/auth.conf
 ## Vagrant
 .vagrant/*
 vagrant-boxes/base-boxes
+
+## Backups
+projectFilesBackup/*
+
