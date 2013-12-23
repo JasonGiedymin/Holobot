@@ -1,6 +1,27 @@
 HoloBot
 =======
 
+# NOTE
+
+Here lies a dead project, but a wonderful learning experiment and discussion.
+
+It was an experiment with Docker, coreos, and vagrant, taking automation to the extreme.
+
+Through time, it morphed and many problems were surfaced. For example,
+a common developement platform (solved by vagrant), slow platform, reliance on
+alpha code (coreos, docker), vagrant/provider issues, and application deployment 
+consistencies between development and production deployment.
+
+Most of the work in this project was done in 15-20 min sessions as most of the
+devs on this project work full time. Keep that in mind as you read the code,
+and peruse the docs.
+
+This project was a good discussion on the above topics, and it also lead us
+to start on another which I may open source as well in the very near future.
+
+That project also came with issues, but solved many of the ones we saw here.
+
+
 ## Quickstart
 
 The quickstart is divided into three parts.
